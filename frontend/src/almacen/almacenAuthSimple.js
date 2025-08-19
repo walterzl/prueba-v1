@@ -1,113 +1,91 @@
 import { defineStore } from "pinia";
-import { ref, computed } from "vue";
+import { ref, computed, readonly } from "vue";
 import { servicioAutenticacion } from "@/servicios/servicioAuth";
 
 /**
- * Almacén de estado para la autenticación de usuarios
- * Maneja el estado de sesión, tokens y datos del usuario
+ * Almacén simplificado de autenticación con API real
  */
 export const usarAlmacenAutenticacion = defineStore("autenticacion", () => {
-  // --- ESTADO ---
+  // Estado
   const token = ref(localStorage.getItem("tokenAutenticacion") || null);
   const datosUsuario = ref(
-    JSON.parse(localStorage.getItem("datosUsuario")) || null
+    JSON.parse(localStorage.getItem("datosUsuario") || "null") || null
   );
   const cargandoAutenticacion = ref(false);
 
-  // --- GETTERS COMPUTADOS ---
+  // Getters computados
   const estaAutenticado = computed(() => !!token.value);
   const nombreUsuario = computed(
     () =>
       datosUsuario.value?.nombreCompleto ||
       datosUsuario.value?.usuario ||
-      "Usuario"
-  );
-  const rolUsuario = computed(() => datosUsuario.value?.rol || "invitado");
-  const esAdmin = computed(
-    () => rolUsuario.value === "admin" || rolUsuario.value === "administrador"
+      "Usuario Demo"
   );
 
-  // --- ACCIONES ---
-
-  /**
-   * Guarda los datos de sesión en el estado y localStorage
-   * @param {string} nuevoToken - Token de autenticación
-   * @param {Object} nuevoDatosUsuario - Datos del usuario autenticado
-   */
+  // Acciones
   function establecerSesion(nuevoToken, nuevoDatosUsuario) {
     token.value = nuevoToken;
     datosUsuario.value = nuevoDatosUsuario;
 
-    // Guardar en localStorage para persistencia
     localStorage.setItem("tokenAutenticacion", nuevoToken);
     localStorage.setItem("datosUsuario", JSON.stringify(nuevoDatosUsuario));
+
+    console.log("Sesión establecida:", {
+      token: nuevoToken,
+      usuario: nuevoDatosUsuario,
+    });
   }
 
-  /**
-   * Limpia toda la información de sesión
-   */
   function limpiarSesion() {
     token.value = null;
     datosUsuario.value = null;
 
-    // Limpiar localStorage
     localStorage.removeItem("tokenAutenticacion");
     localStorage.removeItem("datosUsuario");
+
+    console.log("Sesión limpiada");
   }
 
-  /**
-   * Realiza el inicio de sesión del usuario
-   * @param {Object} credenciales - Credenciales de acceso
-   * @returns {Promise<boolean>} - True si el login fue exitoso
-   */
   async function iniciarSesion(credenciales) {
     cargandoAutenticacion.value = true;
 
     try {
+      console.log("Iniciando sesión con:", credenciales);
+
+      // Usar el servicio de autenticación real
       const { token: nuevoToken, usuario: nuevoUsuario } =
         await servicioAutenticacion.iniciarSesion(credenciales);
 
       establecerSesion(nuevoToken, nuevoUsuario);
-      return true;
+      console.log("Login exitoso:", nuevoUsuario);
+      return nuevoUsuario;
     } catch (error) {
-      console.error("Error en inicio de sesión:", error);
+      console.error("Error en login:", error);
       throw error;
     } finally {
       cargandoAutenticacion.value = false;
     }
   }
 
-  /**
-   * Realiza el cierre de sesión del usuario
-   */
   async function cerrarSesion() {
-    cargandoAutenticacion.value = true;
+    console.log("Cerrando sesión...");
 
     try {
+      // Llamar al servicio real de cierre de sesión
       await servicioAutenticacion.cerrarSesion();
     } catch (error) {
       console.warn("Error al cerrar sesión en el servidor:", error);
     } finally {
       limpiarSesion();
-      cargandoAutenticacion.value = false;
     }
   }
 
-  /**
-   * Verifica la validez del token actual
-   * @returns {Promise<boolean>} - True si el token es válido
-   */
   async function verificarSesion() {
     if (!token.value) return false;
 
     try {
-      const esValido = await servicioAutenticacion.verificarToken(token.value);
-
-      if (!esValido) {
-        limpiarSesion();
-      }
-
-      return esValido;
+      // Usar el servicio real de verificación de token
+      return await servicioAutenticacion.verificarToken(token.value);
     } catch (error) {
       console.error("Error al verificar sesión:", error);
       limpiarSesion();
@@ -115,28 +93,15 @@ export const usarAlmacenAutenticacion = defineStore("autenticacion", () => {
     }
   }
 
-  /**
-   * Actualiza los datos del usuario en el estado
-   * @param {Object} nuevosDataos - Nuevos datos del usuario
-   */
-  function actualizarDatosUsuario(nuevosDatos) {
-    if (datosUsuario.value) {
-      datosUsuario.value = { ...datosUsuario.value, ...nuevosDatos };
-      localStorage.setItem("datosUsuario", JSON.stringify(datosUsuario.value));
-    }
-  }
-
   return {
     // Estado
-    token,
-    datosUsuario,
-    cargandoAutenticacion,
+    token: readonly(token),
+    datosUsuario: readonly(datosUsuario),
+    cargandoAutenticacion: readonly(cargandoAutenticacion),
 
-    // Getters computados
+    // Getters
     estaAutenticado,
     nombreUsuario,
-    rolUsuario,
-    esAdmin,
 
     // Acciones
     establecerSesion,
@@ -144,6 +109,5 @@ export const usarAlmacenAutenticacion = defineStore("autenticacion", () => {
     iniciarSesion,
     cerrarSesion,
     verificarSesion,
-    actualizarDatosUsuario,
   };
 });

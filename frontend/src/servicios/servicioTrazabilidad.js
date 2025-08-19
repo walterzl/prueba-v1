@@ -1,14 +1,27 @@
-import apiClient from './api'
+import clienteApi from "./api";
 
 export const servicioTrazabilidad = {
   /**
    * Obtiene los movimientos de trazabilidad con filtros y paginación.
    * @param {object} params - Objeto con parámetros de filtro y paginación.
-   * @returns {Promise<object>} - Devuelve un objeto con { movimientos, paginacion }.
+   * @returns {Promise<Array>} - Devuelve un array de movimientos.
    */
   async obtenerMovimientos(params = {}) {
-    const queryString = new URLSearchParams(params).toString()
-    return apiClient(`/trazabilidad?${queryString}`)
+    try {
+      const queryString = new URLSearchParams(params).toString();
+      const respuesta = await clienteApi(`/trazabilidad?${queryString}`);
+
+      // Extraer los datos según la estructura de la API
+      if (respuesta?.datos?.movimientos) {
+        return respuesta.datos.movimientos;
+      }
+
+      // Fallback para otros formatos
+      return Array.isArray(respuesta) ? respuesta : [];
+    } catch (error) {
+      console.error("Error al obtener movimientos de trazabilidad:", error);
+      return [];
+    }
   },
 
   /**
@@ -17,9 +30,9 @@ export const servicioTrazabilidad = {
    * @returns {Promise<object>} - El nuevo movimiento creado.
    */
   async registrarMovimiento(datosMovimiento) {
-    return apiClient('/trazabilidad', {
-      method: 'POST',
-      body: JSON.stringify(datosMovimiento)
-    })
-  }
-}
+    return clienteApi("/trazabilidad", {
+      method: "POST",
+      body: JSON.stringify(datosMovimiento),
+    });
+  },
+};

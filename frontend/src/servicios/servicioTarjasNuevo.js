@@ -44,14 +44,7 @@ export class ServicioTarjas {
         : this.rutaBase;
 
       const respuesta = await clienteApi(url);
-
-      // Extraer los datos según la estructura de la API
-      if (respuesta?.datos?.tarjas) {
-        return respuesta.datos.tarjas;
-      }
-
-      // Fallback para otros formatos
-      return Array.isArray(respuesta) ? respuesta : [];
+      return respuesta || [];
     } catch (error) {
       console.error("Error al obtener tarjas:", error);
       throw error;

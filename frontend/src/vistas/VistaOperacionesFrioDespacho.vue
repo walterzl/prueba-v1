@@ -1,14 +1,14 @@
 <template>
-  <div class="vista-trazabilidad">
+  <div class="vista-operaciones-frio">
     <!-- Encabezado de la página -->
     <div class="encabezado-pagina">
       <div class="titulo-seccion">
         <h1 class="titulo-principal">
-          <span class="icono-titulo">📋</span>
-          Trazabilidad de Materiales
+          <span class="icono-titulo">❄️</span>
+          Operaciones Frío y Despacho
         </h1>
         <p class="subtitulo">
-          Seguimiento y control de movimientos de inventario
+          Control de operaciones de cámara fría y preparación de despachos
         </p>
       </div>
 
@@ -19,13 +19,13 @@
           @click="mostrarFormulario = true"
           :disabled="cargandoDatos"
         >
-          <span class="icono-boton">➕</span>
-          Nuevo Movimiento
+          <span class="icono-boton">🧊</span>
+          Nueva Operación
         </button>
         <button
           type="button"
           class="boton boton-secundario"
-          @click="cargarTrazabilidad"
+          @click="cargarOperaciones"
           :disabled="cargandoDatos"
         >
           <span class="icono-boton">🔄</span>
@@ -34,11 +34,11 @@
         <button
           type="button"
           class="boton boton-secundario"
-          @click="exportarDatos"
-          :disabled="cargandoDatos || trazabilidadFiltrada.length === 0"
+          @click="generarReporte"
+          :disabled="cargandoDatos || operacionesFiltradas.length === 0"
         >
           <span class="icono-boton">📊</span>
-          Exportar
+          Reporte
         </button>
       </div>
     </div>
@@ -69,7 +69,7 @@
           <CampoEntrada
             v-model="filtros.busqueda"
             etiqueta="Buscar"
-            placeholder="Material, lote, tarja o usuario..."
+            placeholder="Número de operación, material, cliente..."
             tipo="search"
             :mostrar-etiqueta="false"
             @cambio="aplicarFiltros"
@@ -85,10 +85,10 @@
           />
 
           <CampoEntrada
-            v-model="filtros.tipoMovimiento"
-            etiqueta="Tipo de Movimiento"
+            v-model="filtros.tipoOperacion"
+            etiqueta="Tipo de Operación"
             tipo="select"
-            :opciones="tiposMovimientoDisponibles"
+            :opciones="tiposOperacionDisponibles"
             :mostrar-etiqueta="false"
             @cambio="aplicarFiltros"
           />
@@ -112,6 +112,15 @@
             @cambio="aplicarFiltros"
           />
 
+          <CampoEntrada
+            v-model="filtros.estado"
+            etiqueta="Estado"
+            tipo="select"
+            :opciones="estadosDisponibles"
+            :mostrar-etiqueta="false"
+            @cambio="aplicarFiltros"
+          />
+
           <button
             type="button"
             class="boton boton-secundario boton-limpiar"
@@ -125,11 +134,11 @@
       </div>
     </div>
 
-    <!-- Formulario de nuevo movimiento -->
+    <!-- Formulario de nueva operación -->
     <div v-if="mostrarFormulario" class="seccion-formulario">
       <div class="contenedor-formulario">
         <div class="encabezado-formulario">
-          <h2 class="titulo-formulario">Registrar Nuevo Movimiento</h2>
+          <h2 class="titulo-formulario">Registrar Nueva Operación</h2>
           <button
             type="button"
             class="boton-cerrar"
@@ -140,12 +149,53 @@
           </button>
         </div>
 
-        <form
-          @submit.prevent="guardarMovimiento"
-          class="formulario-trazabilidad"
-        >
+        <form @submit.prevent="guardarOperacion" class="formulario-operacion">
           <div class="campos-formulario">
             <!-- Primera fila -->
+            <div class="fila-campos">
+              <CampoEntrada
+                v-model="formulario.formulario.numero_operacion"
+                etiqueta="Número de Operación"
+                placeholder="Se genera automáticamente"
+                solo-lectura
+                texto-ayuda="El número se asigna automáticamente al guardar"
+              />
+
+              <CampoEntrada
+                v-model="formulario.formulario.tipo_operacion"
+                etiqueta="Tipo de Operación"
+                tipo="select"
+                :opciones="tiposOperacionDisponibles"
+                es-requerido
+                :mensaje-error="formulario.obtenerErrorCampo('tipo_operacion')"
+                @blur="formulario.marcarCampoComoTocado('tipo_operacion')"
+              />
+            </div>
+
+            <!-- Segunda fila -->
+            <div class="fila-campos">
+              <CampoEntrada
+                v-model="formulario.formulario.fecha_operacion"
+                etiqueta="Fecha de Operación"
+                tipo="datetime-local"
+                es-requerido
+                :maximo="fechaHoraActual"
+                :mensaje-error="formulario.obtenerErrorCampo('fecha_operacion')"
+                @blur="formulario.marcarCampoComoTocado('fecha_operacion')"
+              />
+
+              <CampoEntrada
+                v-model="formulario.formulario.turno"
+                etiqueta="Turno"
+                tipo="select"
+                :opciones="turnosDisponibles"
+                es-requerido
+                :mensaje-error="formulario.obtenerErrorCampo('turno')"
+                @blur="formulario.marcarCampoComoTocado('turno')"
+              />
+            </div>
+
+            <!-- Tercera fila -->
             <div class="fila-campos">
               <CampoEntrada
                 v-model="formulario.formulario.codigo_material"
@@ -165,7 +215,7 @@
               />
             </div>
 
-            <!-- Segunda fila -->
+            <!-- Cuarta fila -->
             <div class="fila-campos">
               <CampoEntrada
                 v-model="formulario.formulario.lote"
@@ -177,48 +227,32 @@
               />
 
               <CampoEntrada
-                v-model="formulario.formulario.tarja"
-                etiqueta="Tarja"
-                placeholder="Ej: T2024-001"
-                es-requerido
-                :mensaje-error="formulario.obtenerErrorCampo('tarja')"
-                @blur="formulario.marcarCampoComoTocado('tarja')"
-              />
-            </div>
-
-            <!-- Tercera fila -->
-            <div class="fila-campos">
-              <CampoEntrada
-                v-model="formulario.formulario.tipo_movimiento"
-                etiqueta="Tipo de Movimiento"
-                tipo="select"
-                :opciones="tiposMovimientoDisponibles"
-                es-requerido
-                :mensaje-error="formulario.obtenerErrorCampo('tipo_movimiento')"
-                @blur="formulario.marcarCampoComoTocado('tipo_movimiento')"
-              />
-
-              <CampoEntrada
-                v-model="formulario.formulario.cantidad"
+                v-model="formulario.formulario.cantidad_operacion"
                 etiqueta="Cantidad"
                 tipo="number"
                 placeholder="0"
                 es-requerido
                 minimo="0.01"
                 paso="0.01"
-                :mensaje-error="formulario.obtenerErrorCampo('cantidad')"
-                @blur="formulario.marcarCampoComoTocado('cantidad')"
+                :mensaje-error="
+                  formulario.obtenerErrorCampo('cantidad_operacion')
+                "
+                @blur="formulario.marcarCampoComoTocado('cantidad_operacion')"
               />
             </div>
 
-            <!-- Cuarta fila -->
+            <!-- Quinta fila -->
             <div class="fila-campos">
               <CampoEntrada
                 v-model="formulario.formulario.ubicacion_origen"
                 etiqueta="Ubicación de Origen"
                 tipo="select"
                 :opciones="ubicacionesDisponibles"
-                texto-ayuda="Ubicación desde donde sale el material"
+                es-requerido
+                :mensaje-error="
+                  formulario.obtenerErrorCampo('ubicacion_origen')
+                "
+                @blur="formulario.marcarCampoComoTocado('ubicacion_origen')"
               />
 
               <CampoEntrada
@@ -226,44 +260,60 @@
                 etiqueta="Ubicación de Destino"
                 tipo="select"
                 :opciones="ubicacionesDisponibles"
-                texto-ayuda="Ubicación a donde llega el material"
-              />
-            </div>
-
-            <!-- Quinta fila -->
-            <div class="fila-campos">
-              <CampoEntrada
-                v-model="formulario.formulario.turno"
-                etiqueta="Turno"
-                tipo="select"
-                :opciones="turnosDisponibles"
-                es-requerido
-                :mensaje-error="formulario.obtenerErrorCampo('turno')"
-                @blur="formulario.marcarCampoComoTocado('turno')"
-              />
-
-              <CampoEntrada
-                v-model="formulario.formulario.fecha_movimiento"
-                etiqueta="Fecha del Movimiento"
-                tipo="datetime-local"
-                es-requerido
-                :maximo="fechaHoraActual"
-                :mensaje-error="
-                  formulario.obtenerErrorCampo('fecha_movimiento')
-                "
-                @blur="formulario.marcarCampoComoTocado('fecha_movimiento')"
+                texto-ayuda="Solo para operaciones de traslado"
               />
             </div>
 
             <!-- Sexta fila -->
+            <div class="fila-campos">
+              <CampoEntrada
+                v-model="formulario.formulario.temperatura"
+                etiqueta="Temperatura (°C)"
+                tipo="number"
+                placeholder="0"
+                paso="0.1"
+                texto-ayuda="Temperatura de la cámara fría"
+              />
+
+              <CampoEntrada
+                v-model="formulario.formulario.cliente"
+                etiqueta="Cliente"
+                placeholder="Nombre del cliente (si aplica)"
+                texto-ayuda="Para operaciones de despacho"
+              />
+            </div>
+
+            <!-- Séptima fila -->
+            <div class="fila-campos">
+              <CampoEntrada
+                v-model="formulario.formulario.estado"
+                etiqueta="Estado"
+                tipo="select"
+                :opciones="estadosDisponibles"
+                es-requerido
+                :mensaje-error="formulario.obtenerErrorCampo('estado')"
+                @blur="formulario.marcarCampoComoTocado('estado')"
+              />
+
+              <CampoEntrada
+                v-model="formulario.formulario.responsable"
+                etiqueta="Responsable"
+                placeholder="Nombre del operador"
+                es-requerido
+                :mensaje-error="formulario.obtenerErrorCampo('responsable')"
+                @blur="formulario.marcarCampoComoTocado('responsable')"
+              />
+            </div>
+
+            <!-- Octava fila -->
             <div class="fila-campos fila-completa">
               <CampoEntrada
                 v-model="formulario.formulario.observaciones"
                 etiqueta="Observaciones"
                 tipo="textarea"
-                placeholder="Información adicional sobre el movimiento..."
+                placeholder="Información adicional sobre la operación..."
                 :filas="3"
-                texto-ayuda="Opcional: detalles adicionales del movimiento"
+                texto-ayuda="Opcional: condiciones especiales, incidencias, etc."
               />
             </div>
           </div>
@@ -300,7 +350,7 @@
               ></span>
               <span v-else class="icono-boton">💾</span>
               {{
-                formulario.cargandoEnvio ? "Guardando..." : "Guardar Movimiento"
+                formulario.cargandoEnvio ? "Guardando..." : "Guardar Operación"
               }}
             </button>
           </div>
@@ -308,29 +358,30 @@
       </div>
     </div>
 
-    <!-- Tabla de trazabilidad -->
+    <!-- Tabla de operaciones -->
     <div class="seccion-tabla">
       <div class="encabezado-tabla">
-        <h2 class="titulo-tabla">Historial de Movimientos</h2>
+        <h2 class="titulo-tabla">Registro de Operaciones</h2>
         <div class="info-tabla">
           <span class="contador-registros">
-            {{ trazabilidadFiltrada.length }}
+            {{ operacionesFiltradas.length }}
             {{
-              trazabilidadFiltrada.length === 1 ? "movimiento" : "movimientos"
+              operacionesFiltradas.length === 1 ? "operación" : "operaciones"
             }}
           </span>
         </div>
       </div>
 
-      <!-- Tabla especializada de trazabilidad -->
-      <TablaTrazabilidad
-        :movimientos="trazabilidadFiltrada"
+      <!-- Tabla especializada de operaciones frío y despacho -->
+      <TablaOperacionesFrioDespacho
+        :operaciones="operacionesFiltradas"
         :cargando="cargandoDatos"
         :tiene-activos-filtros="tieneActivosFiltros"
-        @ver-detalle="verDetalleMovimiento"
-        @editar="editarMovimiento"
-        @imprimir="imprimirEtiqueta"
-        @crear-movimiento="mostrarFormulario = true"
+        @ver-detalle="verDetalleOperacion"
+        @editar="editarOperacion"
+        @completar="completarOperacion"
+        @imprimir-etiqueta="imprimirOperacion"
+        @crear-operacion="mostrarFormulario = true"
       />
     </div>
   </div>
@@ -340,14 +391,15 @@
 import { ref, computed, onMounted, watch } from "vue";
 import { usarFormulario } from "@/composables/usarFormulario";
 import { usarPaginacion } from "@/composables/usarPaginacion";
-import { servicioTrazabilidad } from "@/servicios/servicioTrazabilidad";
+import { servicioOperacionesFrioDespacho } from "@/servicios/servicioOperacionesFrioDespacho";
 import { servicioMantenedores } from "@/servicios/servicioMantenedores";
 import CampoEntrada from "@/componentes/CampoEntrada.vue";
 import MensajeEstado from "@/componentes/MensajeEstado.vue";
-import TablaTrazabilidad from "@/componentes/tablas/TablaTrazabilidad.vue";
+import TablaOperacionesFrioDespacho from "@/componentes/tablas/TablaOperacionesFrioDespacho.vue";
 import {
   PLANTAS,
-  TIPOS_MOVIMIENTO,
+  TIPOS_OPERACION_FRIO,
+  ESTADOS_OPERACION,
   TURNOS,
   MENSAJES,
   obtenerOpcionesSelect,
@@ -356,20 +408,19 @@ import {
   fechaActualParaInput,
   fechaHoraActualParaInput,
   formatearFecha,
-  formatearHora,
   formatearNumero,
   filtrarPorTexto,
   ordenarPor,
   filtrarPorRangoFechas,
+  generarId,
 } from "@/utilidades/auxiliares";
 
 // ============== ESTADO REACTIVO ==============
 
 // Estado de datos
-const trazabilidad = ref([]);
-const materiales = ref([]);
+const operaciones = ref([]);
 const ubicaciones = ref([]);
-const trazabilidadFiltrada = ref([]);
+const operacionesFiltradas = ref([]);
 
 // Estado de UI
 const mostrarFormulario = ref(false);
@@ -381,34 +432,39 @@ const mensajeError = ref("");
 const filtros = ref({
   busqueda: "",
   planta: "Rancagua",
-  tipoMovimiento: "",
+  tipoOperacion: "",
   fechaDesde: "",
   fechaHasta: "",
+  estado: "",
 });
 
 // Paginación
 const paginacion = usarPaginacion({
-  elementosPorPagina: 50,
+  elementosPorPagina: 25,
   paginaActual: 1,
 });
 
-// Formulario de movimiento
+// Formulario de operación
 const formulario = usarFormulario({
   datosIniciales: {
+    numero_operacion: "",
+    tipo_operacion: "",
+    fecha_operacion: fechaHoraActualParaInput(),
+    turno: "Turno 1",
     codigo_material: "",
     nombre_material: "",
     lote: "",
-    tarja: "",
-    tipo_movimiento: "",
-    cantidad: 0,
+    cantidad_operacion: 0,
     ubicacion_origen: "",
     ubicacion_destino: "",
-    turno: "Turno 1",
-    fecha_movimiento: fechaHoraActualParaInput(),
+    temperatura: null,
+    cliente: "",
+    estado: "pendiente",
+    responsable: "",
     observaciones: "",
     planta: "Rancagua",
   },
-  tipoValidacion: "trazabilidad",
+  tipoValidacion: "operacionesFrioDespacho",
   validarEnTiempoReal: true,
 });
 
@@ -416,8 +472,12 @@ const formulario = usarFormulario({
 
 const plantasDisponibles = computed(() => obtenerOpcionesSelect(PLANTAS));
 
-const tiposMovimientoDisponibles = computed(() =>
-  obtenerOpcionesSelect(TIPOS_MOVIMIENTO)
+const tiposOperacionDisponibles = computed(() =>
+  obtenerOpcionesSelect(TIPOS_OPERACION_FRIO)
+);
+
+const estadosDisponibles = computed(() =>
+  obtenerOpcionesSelect(ESTADOS_OPERACION)
 );
 
 const turnosDisponibles = computed(() => obtenerOpcionesSelect(TURNOS));
@@ -437,186 +497,97 @@ const fechaHoraActual = computed(() => fechaHoraActualParaInput());
 const tieneActivosFiltros = computed(() => {
   return (
     filtros.value.busqueda ||
-    filtros.value.tipoMovimiento ||
+    filtros.value.tipoOperacion ||
     filtros.value.fechaDesde ||
-    filtros.value.fechaHasta
+    filtros.value.fechaHasta ||
+    filtros.value.estado
   );
 });
 
 const columnasTabla = computed(() => [
   {
-    clave: "id",
-    titulo: "ID",
-    ordenable: true,
-    ancho: "60px",
-  },
-  {
-    clave: "id_movimiento",
-    titulo: "ID Movimiento",
-    ordenable: true,
-    ancho: "180px",
-  },
-  {
-    clave: "fecha",
-    titulo: "Fecha/Hora",
-    ordenable: true,
-    ancho: "140px",
-    tipo: "fechaHora",
-  },
-  {
-    clave: "tipo_movimiento",
-    titulo: "Tipo Movimiento",
+    clave: "numero_operacion",
+    titulo: "Nº Operación",
     ordenable: true,
     ancho: "140px",
   },
   {
-    clave: "planta",
-    titulo: "Planta",
-    ordenable: true,
-    ancho: "100px",
-  },
-  {
-    clave: "guia_sii",
-    titulo: "Guía SII",
+    clave: "tipo_operacion",
+    titulo: "Tipo",
     ordenable: true,
     ancho: "120px",
-    formato: (valor) => valor || "N/A",
+    alineacion: "centro",
   },
   {
-    clave: "codigo_material",
-    titulo: "Código Material",
-    ordenable: true,
-    ancho: "120px",
-  },
-  {
-    clave: "nombre_material",
+    clave: "material",
     titulo: "Material",
     ordenable: true,
-    ancho: "250px",
-  },
-  {
-    clave: "clasificacion",
-    titulo: "Clasificación",
-    ordenable: true,
-    ancho: "120px",
+    ancho: "180px",
   },
   {
     clave: "lote",
     titulo: "Lote",
     ordenable: true,
-    ancho: "140px",
+    ancho: "120px",
   },
   {
-    clave: "proveedor",
-    titulo: "Proveedor",
-    ordenable: true,
-    ancho: "130px",
-    formato: (valor) => valor || "N/A",
-  },
-  {
-    clave: "cantidad",
+    clave: "cantidad_operacion",
     titulo: "Cantidad",
     ordenable: true,
+    ancho: "100px",
     alineacion: "derecha",
-    ancho: "110px",
-  },
-  {
-    clave: "total_pallet",
-    titulo: "Pallets",
-    ordenable: true,
-    alineacion: "derecha",
-    ancho: "80px",
-  },
-  {
-    clave: "bodega_origen",
-    titulo: "Bodega Origen",
-    ordenable: true,
-    ancho: "130px",
-    formato: (valor) => valor || "N/A",
-  },
-  {
-    clave: "bodega_destino",
-    titulo: "Bodega Destino",
-    ordenable: true,
-    ancho: "130px",
-    formato: (valor) => valor || "N/A",
   },
   {
     clave: "ubicacion_origen",
-    titulo: "Ubicación Origen",
+    titulo: "Ubicación",
     ordenable: true,
     ancho: "140px",
-    formato: (valor) => valor || "N/A",
   },
   {
-    clave: "ubicacion_destino",
-    titulo: "Ubicación Destino",
-    ordenable: true,
-    ancho: "140px",
-    formato: (valor) => valor || "N/A",
-  },
-  {
-    clave: "turno",
-    titulo: "Turno",
+    clave: "temperatura",
+    titulo: "Temp. (°C)",
     ordenable: true,
     ancho: "100px",
-    formato: (valor) => valor || "N/A",
+    alineacion: "centro",
   },
   {
-    clave: "total_stock",
-    titulo: "Stock Total",
-    ordenable: true,
-    alineacion: "derecha",
-    ancho: "100px",
-    formato: (valor) => (valor ? formatearNumero(valor, 2) : "N/A"),
-  },
-  {
-    clave: "numero_embarque",
-    titulo: "Nº Embarque",
-    ordenable: true,
-    ancho: "120px",
-    formato: (valor) => valor || "N/A",
-  },
-  {
-    clave: "patente_camion",
-    titulo: "Patente Camión",
-    ordenable: true,
-    ancho: "120px",
-    formato: (valor) => valor || "N/A",
-  },
-  {
-    clave: "observacion",
-    titulo: "Observación",
-    ordenable: true,
-    ancho: "200px",
-    formato: (valor) => valor || "N/A",
-  },
-  {
-    clave: "fecha_creacion",
-    titulo: "Fecha Creación",
+    clave: "responsable",
+    titulo: "Responsable",
     ordenable: true,
     ancho: "140px",
-    tipo: "fechaHora",
+  },
+  {
+    clave: "estado",
+    titulo: "Estado",
+    ordenable: true,
+    ancho: "120px",
+    alineacion: "centro",
+  },
+  {
+    clave: "acciones",
+    titulo: "Acciones",
+    ordenable: false,
+    ancho: "120px",
+    alineacion: "centro",
   },
 ]);
 
 // ============== MÉTODOS ==============
 
-async function cargarTrazabilidad() {
+async function cargarOperaciones() {
   cargandoDatos.value = true;
   mensajeError.value = "";
 
   try {
-    const datos = await servicioTrazabilidad.obtenerMovimientos({
+    const datos = await servicioOperacionesFrioDespacho.obtenerOperaciones({
       planta: filtros.value.planta,
-      limite: 1000, // Cargar más registros para el historial
     });
 
-    trazabilidad.value = datos || [];
+    operaciones.value = datos || [];
     aplicarFiltros();
-    mostrarMensajeExito("Historial actualizado correctamente");
+    mostrarMensajeExito("Operaciones actualizadas correctamente");
   } catch (error) {
-    console.error("Error al cargar trazabilidad:", error);
+    console.error("Error al cargar operaciones:", error);
     mensajeError.value = error.message || MENSAJES.ERROR_GENERICO;
   } finally {
     cargandoDatos.value = false;
@@ -656,105 +627,143 @@ async function buscarMaterial() {
 }
 
 function aplicarFiltros() {
-  let datos = [...trazabilidad.value];
+  let datos = [...operaciones.value];
 
   // Aplicar filtro de búsqueda
   if (filtros.value.busqueda) {
     datos = filtrarPorTexto(datos, filtros.value.busqueda, [
+      "numero_operacion",
       "codigo_material",
       "nombre_material",
       "lote",
-      "id_movimiento",
-      "proveedor",
-      "observacion",
-      "guia_sii",
-      "clasificacion",
-      "bodega_origen",
-      "bodega_destino",
-      "ubicacion_origen",
-      "ubicacion_destino",
-      "numero_embarque",
-      "patente_camion",
+      "cliente",
+      "responsable",
     ]);
   }
 
-  // Aplicar filtro de tipo de movimiento
-  if (filtros.value.tipoMovimiento) {
+  // Aplicar filtro de tipo de operación
+  if (filtros.value.tipoOperacion) {
     datos = datos.filter(
-      (item) => item.tipo_movimiento === filtros.value.tipoMovimiento
+      (item) => item.tipo_operacion === filtros.value.tipoOperacion
     );
+  }
+
+  // Aplicar filtro de estado
+  if (filtros.value.estado) {
+    datos = datos.filter((item) => item.estado === filtros.value.estado);
   }
 
   // Aplicar filtro de fechas
   if (filtros.value.fechaDesde || filtros.value.fechaHasta) {
     datos = filtrarPorRangoFechas(
       datos,
-      "fecha",
+      "fecha_operacion",
       filtros.value.fechaDesde,
       filtros.value.fechaHasta
     );
   }
 
-  trazabilidadFiltrada.value = datos;
+  operacionesFiltradas.value = datos;
   paginacion.totalRegistros.value = datos.length;
-  paginacion.paginaActual.value = 1; // Resetear a primera página
+  paginacion.paginaActual.value = 1;
 }
 
 function manejarOrdenamiento({ campo, direccion }) {
-  trazabilidadFiltrada.value = ordenarPor(
-    trazabilidadFiltrada.value,
+  operacionesFiltradas.value = ordenarPor(
+    operacionesFiltradas.value,
     campo,
     direccion
   );
 }
 
-function obtenerClaseTipoMovimiento(tipo) {
-  const tiposIngreso = ["INGRESO", "RECEPCION_INTERNA", "INGRESO_PROVEEDOR"];
-  const tiposSalida = ["DESPACHO", "CONSUMO", "SALIDA"];
-  const tiposMovimiento = ["TRASLADO", "TRANSFERENCIA"];
+function obtenerClaseTipoOperacion(tipo) {
+  const mapaTipos = {
+    consumo: "consumo",
+    despacho: "despacho",
+    preparacion: "preparacion",
+    almacenaje: "almacenaje",
+  };
 
-  if (tiposIngreso.includes(tipo)) return "ingreso";
-  if (tiposSalida.includes(tipo)) return "salida";
-  if (tiposMovimiento.includes(tipo)) return "movimiento";
-  return "neutral";
+  return mapaTipos[tipo] || "neutral";
+}
+
+function obtenerClaseEstado(estado) {
+  const mapaEstados = {
+    pendiente: "pendiente",
+    en_proceso: "proceso",
+    completado: "completado",
+    cancelado: "cancelado",
+  };
+
+  return mapaEstados[estado] || "neutral";
 }
 
 function obtenerMensajeVacio() {
   if (tieneActivosFiltros.value) {
-    return "No se encontraron movimientos que coincidan con los filtros aplicados.";
+    return "No se encontraron operaciones que coincidan con los filtros aplicados.";
   }
-  return "Comience registrando el primer movimiento de material.";
+  return "Comience registrando la primera operación de frío y despacho.";
 }
 
 function limpiarFiltros() {
   filtros.value = {
     busqueda: "",
-    planta: filtros.value.planta, // Mantener la planta seleccionada
-    tipoMovimiento: "",
+    planta: filtros.value.planta,
+    tipoOperacion: "",
     fechaDesde: "",
     fechaHasta: "",
+    estado: "",
   };
   aplicarFiltros();
 }
 
-async function exportarDatos() {
-  try {
-    // TODO: Implementar exportación
-    mostrarMensajeExito("Funcionalidad de exportación en desarrollo");
-  } catch (error) {
-    mensajeError.value = "Error al exportar datos";
-  }
+function verDetalleOperacion(operacion) {
+  // TODO: Implementar modal de detalle
+  mostrarMensajeExito(
+    `Detalle de operación ${operacion.numero_operacion} (en desarrollo)`
+  );
 }
 
-async function guardarMovimiento() {
+function editarOperacion(operacion) {
+  // TODO: Implementar edición
+  mostrarMensajeExito(
+    `Edición de operación ${operacion.numero_operacion} (en desarrollo)`
+  );
+}
+
+function completarOperacion(operacion) {
+  // TODO: Implementar completado de operación
+  mostrarMensajeExito(
+    `Completar operación ${operacion.numero_operacion} (en desarrollo)`
+  );
+}
+
+function imprimirOperacion(operacion) {
+  // TODO: Implementar impresión
+  mostrarMensajeExito(
+    `Impresión de operación ${operacion.numero_operacion} (en desarrollo)`
+  );
+}
+
+function generarReporte() {
+  // TODO: Implementar reporte
+  mostrarMensajeExito("Generación de reporte en desarrollo");
+}
+
+async function guardarOperacion() {
   const exito = await formulario.manejarEnvio(async (datos) => {
-    return await servicioTrazabilidad.crearMovimiento(datos);
+    // Generar número de operación si no existe
+    if (!datos.numero_operacion) {
+      datos.numero_operacion = `OP-${new Date().getFullYear()}-${generarId(4)}`;
+    }
+
+    return await servicioOperacionesFrioDespacho.crearOperacion(datos);
   });
 
   if (exito) {
     mostrarMensajeExito(MENSAJES.EXITO_CREAR);
     cerrarFormulario();
-    await cargarTrazabilidad();
+    await cargarOperaciones();
   }
 }
 
@@ -762,9 +771,10 @@ function cerrarFormulario() {
   mostrarFormulario.value = false;
   formulario.reiniciarFormulario();
   // Resetear valores por defecto
-  formulario.formulario.fecha_movimiento = fechaHoraActualParaInput();
+  formulario.formulario.fecha_operacion = fechaHoraActualParaInput();
   formulario.formulario.planta = filtros.value.planta;
   formulario.formulario.turno = "Turno 1";
+  formulario.formulario.estado = "pendiente";
 }
 
 function mostrarMensajeExito(mensaje) {
@@ -778,16 +788,17 @@ watch(
   () => filtros.value.planta,
   async (nuevaPlanta) => {
     formulario.formulario.planta = nuevaPlanta;
-    await cargarTrazabilidad();
+    await cargarOperaciones();
   }
 );
 
 watch(
   () => [
     filtros.value.busqueda,
-    filtros.value.tipoMovimiento,
+    filtros.value.tipoOperacion,
     filtros.value.fechaDesde,
     filtros.value.fechaHasta,
+    filtros.value.estado,
   ],
   () => {
     aplicarFiltros();
@@ -797,19 +808,18 @@ watch(
 // ============== LIFECYCLE ==============
 
 onMounted(async () => {
-  await Promise.all([cargarTrazabilidad(), cargarUbicaciones()]);
+  await Promise.all([cargarOperaciones(), cargarUbicaciones()]);
 });
 </script>
 
 <style scoped>
-.vista-trazabilidad {
+.vista-operaciones-frio {
   padding: 1.5rem;
   max-width: 100%;
   margin: 0 auto;
-  overflow-x: auto;
 }
 
-/* Reutilizar estilos base de VistaInventario */
+/* Reutilizar estilos base */
 .encabezado-pagina {
   display: flex;
   justify-content: space-between;
@@ -898,7 +908,7 @@ onMounted(async () => {
   line-height: 1;
 }
 
-/* Filtros específicos de trazabilidad */
+/* Filtros */
 .seccion-filtros {
   background: white;
   border-radius: 1rem;
@@ -918,144 +928,13 @@ onMounted(async () => {
 
 .filtros-fila-secundaria {
   display: grid;
-  grid-template-columns: auto auto 1fr auto;
+  grid-template-columns: auto auto auto auto;
   gap: 1rem;
   align-items: end;
 }
 
 .boton-limpiar {
   justify-self: end;
-}
-
-/* Badges para tipos de movimiento */
-.badge-movimiento {
-  display: inline-block;
-  padding: 0.25rem 0.75rem;
-  border-radius: 9999px;
-  font-size: 0.75rem;
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.025em;
-}
-
-.badge-ingreso {
-  background: #dcfce7;
-  color: #166534;
-}
-
-.badge-salida {
-  background: #fee2e2;
-  color: #991b1b;
-}
-
-.badge-movimiento {
-  background: #dbeafe;
-  color: #1e40af;
-}
-
-.badge-neutral {
-  background: #f3f4f6;
-  color: #374151;
-}
-
-/* Formateo de material */
-.material-info {
-  display: flex;
-  flex-direction: column;
-  gap: 0.125rem;
-}
-
-.material-nombre {
-  font-weight: 500;
-  color: #1f2937;
-  font-size: 0.875rem;
-  line-height: 1.2;
-}
-
-.material-detalle {
-  display: flex;
-  gap: 0.5rem;
-  align-items: center;
-}
-
-.material-codigo {
-  font-size: 0.75rem;
-  color: #6b7280;
-  font-weight: 500;
-}
-
-.material-clasificacion {
-  font-size: 0.75rem;
-  color: #9ca3af;
-  font-weight: 400;
-  text-transform: capitalize;
-}
-
-/* Formateo de cantidad */
-.cantidad-info {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-end;
-  gap: 0.125rem;
-}
-
-.cantidad-valor {
-  font-weight: 600;
-  color: #1f2937;
-}
-
-.cantidad-unidad {
-  font-size: 0.75rem;
-  color: #6b7280;
-  text-transform: uppercase;
-}
-
-/* Formateo de fecha/hora */
-.fecha-completa {
-  display: flex;
-  flex-direction: column;
-  gap: 0.125rem;
-}
-
-.fecha-valor {
-  font-weight: 500;
-  color: #1f2937;
-}
-
-.hora-valor {
-  font-size: 0.75rem;
-  color: #6b7280;
-}
-
-/* Formateo de proveedor */
-.proveedor-info {
-  display: flex;
-  align-items: center;
-}
-
-.proveedor-nombre {
-  font-weight: 500;
-  color: #1f2937;
-  font-size: 0.875rem;
-}
-
-/* Formateo de observación */
-.observacion-info {
-  max-width: 200px;
-}
-
-.observacion-texto {
-  font-size: 0.875rem;
-  color: #1f2937;
-  line-height: 1.3;
-  word-break: break-word;
-}
-
-/* Texto N/A */
-.texto-na {
-  font-size: 0.875rem;
-  color: #9ca3af;
-  font-style: italic;
 }
 
 /* Formulario */
@@ -1105,7 +984,7 @@ onMounted(async () => {
   color: #374151;
 }
 
-.formulario-trazabilidad {
+.formulario-operacion {
   padding: 2rem;
 }
 
@@ -1163,6 +1042,174 @@ onMounted(async () => {
   color: #6b7280;
   font-size: 0.875rem;
   font-weight: 500;
+}
+
+/* Contenido de celdas específicas */
+.numero-operacion {
+  display: flex;
+  flex-direction: column;
+  gap: 0.125rem;
+}
+
+.fecha-operacion {
+  font-size: 0.75rem;
+  color: #6b7280;
+}
+
+.info-material {
+  display: flex;
+  flex-direction: column;
+  gap: 0.125rem;
+}
+
+.nombre-material {
+  font-size: 0.75rem;
+  color: #6b7280;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 160px;
+}
+
+.cantidad-operacion {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.valor-cantidad {
+  font-weight: 600;
+  color: #1f2937;
+}
+
+.temperatura {
+  text-align: center;
+}
+
+.valor-temperatura {
+  font-weight: 600;
+  color: #0369a1;
+}
+
+.temperatura-na {
+  color: #9ca3af;
+  font-style: italic;
+}
+
+/* Badges de tipo de operación */
+.badge-tipo {
+  display: inline-block;
+  padding: 0.25rem 0.75rem;
+  border-radius: 9999px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.025em;
+}
+
+.badge-consumo {
+  background: #fef3c7;
+  color: #92400e;
+}
+
+.badge-despacho {
+  background: #dbeafe;
+  color: #1e40af;
+}
+
+.badge-preparacion {
+  background: #e0e7ff;
+  color: #3730a3;
+}
+
+.badge-almacenaje {
+  background: #dcfce7;
+  color: #166534;
+}
+
+/* Badges de estado */
+.badge-estado {
+  display: inline-block;
+  padding: 0.25rem 0.75rem;
+  border-radius: 9999px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.025em;
+}
+
+.badge-pendiente {
+  background: #fef3c7;
+  color: #92400e;
+}
+
+.badge-proceso {
+  background: #dbeafe;
+  color: #1e40af;
+}
+
+.badge-completado {
+  background: #dcfce7;
+  color: #166534;
+}
+
+.badge-cancelado {
+  background: #fee2e2;
+  color: #991b1b;
+}
+
+.badge-neutral {
+  background: #f3f4f6;
+  color: #374151;
+}
+
+/* Acciones de fila */
+.acciones-fila {
+  display: flex;
+  justify-content: center;
+  gap: 0.5rem;
+}
+
+.boton-accion {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2rem;
+  height: 2rem;
+  border: none;
+  border-radius: 0.375rem;
+  font-size: 0.875rem;
+  cursor: pointer;
+  transition: all 0.2s ease-in-out;
+}
+
+.boton-ver {
+  background: #f3f4f6;
+  color: #374151;
+}
+
+.boton-ver:hover {
+  background: #e5e7eb;
+  color: #1f2937;
+}
+
+.boton-editar {
+  background: #fef3c7;
+  color: #92400e;
+}
+
+.boton-editar:hover {
+  background: #fde68a;
+  color: #78350f;
+}
+
+.boton-imprimir {
+  background: #dbeafe;
+  color: #1e40af;
+}
+
+.boton-imprimir:hover {
+  background: #bfdbfe;
+  color: #1e3a8a;
 }
 
 /* Estados */
@@ -1228,20 +1275,9 @@ onMounted(async () => {
   }
 }
 
-/* Tabla de trazabilidad extendida */
-.seccion-tabla {
-  overflow-x: auto;
-  -webkit-overflow-scrolling: touch;
-  border-radius: 1rem;
-}
-
-.seccion-tabla table {
-  min-width: 2000px; /* Ancho mínimo para todas las columnas */
-}
-
 /* Responsive */
 @media (max-width: 1024px) {
-  .vista-trazabilidad {
+  .vista-operaciones-frio {
     padding: 1rem;
   }
 
@@ -1276,7 +1312,7 @@ onMounted(async () => {
     padding: 1rem 1.5rem;
   }
 
-  .formulario-trazabilidad {
+  .formulario-operacion {
     padding: 1.5rem;
   }
 
@@ -1301,6 +1337,15 @@ onMounted(async () => {
 
   .titulo-tabla {
     font-size: 1rem;
+  }
+
+  .acciones-fila {
+    flex-direction: column;
+    gap: 0.25rem;
+  }
+
+  .nombre-material {
+    max-width: 120px;
   }
 }
 </style>

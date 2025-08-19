@@ -1,14 +1,19 @@
-import './assets/base.css'
+// Importar estilos base y globales
+import "./assets/base.css";
+import "./estilos/estilos-globales.css";
 
-import { createApp } from 'vue'
-import { createPinia } from 'pinia'
+import { createApp } from "vue";
+import { createPinia } from "pinia";
 
-import App from './App.vue'
-import router from './router'
+import App from "./App.vue";
+import router from "./router";
 
-const app = createApp(App)
+// Crear la aplicación Vue
+const aplicacion = createApp(App);
 
-app.use(createPinia())
-app.use(router)
+// Configurar plugins
+aplicacion.use(createPinia());
+aplicacion.use(router);
 
-app.mount('#app')
+// Montar la aplicación
+aplicacion.mount("#app");

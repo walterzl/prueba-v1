@@ -1,4 +1,4 @@
-import apiClient from './api'
+import clienteApi from "./api";
 
 export const servicioFrioDespacho = {
   /**
@@ -7,8 +7,8 @@ export const servicioFrioDespacho = {
    * @returns {Promise<object>} - Devuelve un objeto con { operaciones, paginacion }.
    */
   async obtenerOperaciones(params = {}) {
-    const queryString = new URLSearchParams(params).toString()
-    return apiClient(`/operaciones-frio-despacho?${queryString}`)
+    const queryString = new URLSearchParams(params).toString();
+    return clienteApi(`/operaciones-frio-despacho?${queryString}`);
   },
 
   /**
@@ -17,9 +17,9 @@ export const servicioFrioDespacho = {
    * @returns {Promise<object>} - La nueva operación creada.
    */
   async registrarOperacion(datosOperacion) {
-    return apiClient('/operaciones-frio-despacho', {
-      method: 'POST',
-      body: JSON.stringify(datosOperacion)
-    })
-  }
-}
+    return clienteApi("/operaciones-frio-despacho", {
+      method: "POST",
+      body: JSON.stringify(datosOperacion),
+    });
+  },
+};

@@ -1,35 +1,85 @@
-const API_URL = 'http://localhost:3001/api'
+const URL_API = "/api";
 
-export const servicioAuth = {
-  async login(credenciales) {
+/**
+ * Servicio de autenticación
+ * Maneja el inicio y cierre de sesión de usuarios
+ */
+export const servicioAutenticacion = {
+  /**
+   * Realiza el inicio de sesión del usuario
+   * @param {Object} credenciales - Objeto con usuario y contraseña
+   * @param {string} credenciales.usuario - Nombre de usuario
+   * @param {string} credenciales.password - Contraseña del usuario
+   * @returns {Promise<Object>} - Datos del usuario autenticado y token
+   */
+  async iniciarSesion(credenciales) {
+    console.log("Intentando iniciar sesión con usuario:", credenciales.usuario);
+
     try {
-      const respuesta = await fetch(`${API_URL}/auth/login`, {
-        method: 'POST',
+      const respuesta = await fetch(`${URL_API}/auth/login`, {
+        method: "POST",
+        mode: "cors",
+        credentials: "include",
         headers: {
-          'Content-Type': 'application/json'
+          "Content-Type": "application/json",
+          Accept: "application/json",
         },
-        body: JSON.stringify(credenciales)
-      })
+        body: JSON.stringify(credenciales),
+      });
 
-      const datos = await respuesta.json()
+      const datos = await respuesta.json();
 
       if (!respuesta.ok) {
-        throw new Error(datos.mensaje || 'Error en el inicio de sesión')
+        throw new Error(datos.mensaje || "Error en el inicio de sesión");
       }
 
-      return datos.datos // Devuelve { token, usuario }
+      console.log("Inicio de sesión exitoso para:", credenciales.usuario);
+      return datos.datos; // Devuelve { token, usuario }
     } catch (error) {
-      console.error('Error en servicioAuth.login:', error)
-      // Re-lanzamos el error para que el componente que lo llama pueda manejarlo
-      throw error
+      console.error("Error al iniciar sesión:", error.message);
+      throw new Error(error.message || "Error de conexión al servidor");
     }
   },
 
-  async logout() {
-    // Aunque el backend tiene un endpoint de logout, para el frontend
-    // a menudo es suficiente con limpiar los datos de sesión locales.
-    // Se podría añadir una llamada a /api/auth/logout si se quiere invalidar el token en el servidor.
-    console.log('Cerrando sesión...')
-    return Promise.resolve()
-  }
-}
+  /**
+   * Realiza el cierre de sesión del usuario
+   * @returns {Promise<void>}
+   */
+  async cerrarSesion() {
+    try {
+      // Llamar al endpoint de logout en el servidor para invalidar el token
+      await fetch(`${URL_API}/auth/logout`, {
+        method: "POST",
+        credentials: "include",
+      });
+
+      console.log("Sesión cerrada exitosamente");
+    } catch (error) {
+      console.warn("Error al cerrar sesión en el servidor:", error.message);
+      // No lanzamos error aquí porque el cierre local de sesión debe proceder
+    }
+  },
+
+  /**
+   * Verifica si el token actual es válido
+   * @param {string} token - Token a verificar
+   * @returns {Promise<boolean>} - True si el token es válido
+   */
+  async verificarToken(token) {
+    if (!token) return false;
+
+    try {
+      const respuesta = await fetch(`${URL_API}/auth/validate`, {
+        method: "GET",
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      return respuesta.ok;
+    } catch (error) {
+      console.warn("Error al verificar token:", error.message);
+      return false;
+    }
+  },
+};

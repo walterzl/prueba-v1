@@ -29,13 +29,15 @@ const configuracion = {
     origen: process.env.CORS_ORIGIN || [
       "http://localhost:3000",
       "http://127.0.0.1:3000",
+      "http://localhost:5173",
+      "http://127.0.0.1:5173",
     ],
     credentials: true,
   },
 
   rateLimit: {
     windowMs: 15 * 60 * 1000, // 15 minutos
-    max: 100, // máximo 100 requests por ventana por IP
+    max: 10000, // máximo 10000 requests por ventana por IP (muy alto para desarrollo)
     message:
       "Demasiadas solicitudes desde esta IP, intente nuevamente más tarde.",
   },
