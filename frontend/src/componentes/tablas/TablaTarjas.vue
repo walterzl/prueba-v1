@@ -30,6 +30,7 @@
             <th class="col-usuario">Usuario</th>
             <th class="col-fecha-creacion">Fecha Creación</th>
             <th class="col-fecha-impresion">Fecha Impresión</th>
+            <th class="col-qr">Código QR</th>
           </tr>
         </thead>
         <tbody>
@@ -235,6 +236,42 @@
               </div>
               <span v-else class="no-data">N/A</span>
             </td>
+
+            <!-- Código QR -->
+            <td class="col-qr">
+              <div class="contenedor-qr">
+                <canvas
+                  :id="`qr-canvas-${tarja.id}`"
+                  class="qr-canvas"
+                  width="64"
+                  height="64"
+                ></canvas>
+                <div class="acciones-qr">
+                  <button
+                    type="button"
+                    class="btn-qr-generar"
+                    @click="generarQRFila(tarja)"
+                    :disabled="generandoQR[tarja.id]"
+                    title="Generar código QR"
+                  >
+                    <span
+                      v-if="generandoQR[tarja.id]"
+                      class="spinner-mini"
+                    ></span>
+                    <span v-else>📱</span>
+                  </button>
+                  <button
+                    type="button"
+                    class="btn-qr-descargar"
+                    @click="descargarQRFila(tarja)"
+                    :disabled="!qrGenerados[tarja.id]"
+                    title="Descargar QR"
+                  >
+                    💾
+                  </button>
+                </div>
+              </div>
+            </td>
           </tr>
         </tbody>
       </table>
@@ -259,7 +296,15 @@
 </template>
 
 <script setup>
-import { computed } from "vue";
+import { ref, onMounted, nextTick, watch } from "vue";
+import { usarCodigoQR } from "@/composables/usarCodigoQR";
+
+// Composable QR
+const { generarQREnCanvas, descargarCodigoQR } = usarCodigoQR();
+
+// Estados para QR
+const generandoQR = ref({});
+const qrGenerados = ref({});
 
 // Props
 const props = defineProps({
@@ -274,11 +319,12 @@ const props = defineProps({
   tieneActivosFiltros: {
     type: Boolean,
     default: false,
+    validator: (value) => typeof value === "boolean",
   },
 });
 
 // Emits
-const emit = defineEmits([
+defineEmits([
   "ver-detalle",
   "editar",
   "imprimir",
@@ -311,12 +357,6 @@ function formatearCantidad(cantidad) {
     minimumFractionDigits: 0,
     maximumFractionDigits: 2,
   });
-}
-
-function truncarTexto(texto, longitud) {
-  if (!texto) return "N/A";
-  if (texto.length <= longitud) return texto;
-  return texto.substring(0, longitud) + "...";
 }
 
 function obtenerClaseTipo(tipoTarja) {
@@ -364,24 +404,126 @@ function obtenerTextoEstado(estado) {
   return mapaTextos[estado] || estado;
 }
 
-function puedeEditar(tarja) {
-  return ["generada"].includes(tarja.estado);
-}
-
-function puedeImprimir(tarja) {
-  return ["generada", "impresa"].includes(tarja.estado);
-}
-
-function puedeAnular(tarja) {
-  return ["generada", "impresa", "en_uso"].includes(tarja.estado);
-}
-
 function obtenerMensajeVacio() {
   if (props.tieneActivosFiltros) {
     return "No se encontraron tarjas que coincidan con los filtros aplicados.";
   }
   return "Comience generando la primera tarja del sistema.";
 }
+
+// ============== FUNCIONES QR ==============
+
+async function generarQRFila(tarja) {
+  if (generandoQR.value[tarja.id]) return;
+
+  generandoQR.value[tarja.id] = true;
+
+  try {
+    // Esperar a que el DOM se actualice
+    await nextTick();
+
+    // Obtener el canvas
+    const canvas = document.getElementById(`qr-canvas-${tarja.id}`);
+    if (!canvas) {
+      console.warn(`Canvas no encontrado para tarja ${tarja.id}`);
+      return;
+    }
+
+    // Generar QR en el canvas
+    await generarQREnCanvas(tarja, canvas);
+
+    // Marcar como generado
+    qrGenerados.value[tarja.id] = true;
+
+    console.log(`QR generado para tarja ${tarja.numero_tarja}`);
+  } catch (error) {
+    console.error("Error al generar QR:", error);
+  } finally {
+    generandoQR.value[tarja.id] = false;
+  }
+}
+
+async function descargarQRFila(tarja) {
+  if (!qrGenerados.value[tarja.id]) return;
+
+  try {
+    const canvas = document.getElementById(`qr-canvas-${tarja.id}`);
+    if (!canvas) return;
+
+    // Convertir canvas a DataURL
+    const dataURL = canvas.toDataURL("image/png");
+
+    // Descargar usando el composable
+    const nombreArchivo = `qr-tarja-${tarja.numero_tarja}`;
+    descargarCodigoQR(dataURL, nombreArchivo);
+  } catch (error) {
+    console.error("Error al descargar QR:", error);
+  }
+}
+
+async function generarQRsAutomaticos() {
+  // Generar QRs automáticamente para todas las tarjas visibles
+  if (!props.tarjas || props.tarjas.length === 0) return;
+
+  // Función para esperar hasta que un canvas esté disponible
+  const esperarCanvas = async (tarjaId, maxIntentos = 10) => {
+    for (let intento = 0; intento < maxIntentos; intento++) {
+      const canvas = document.getElementById(`qr-canvas-${tarjaId}`);
+      if (canvas) {
+        return canvas;
+      }
+      await new Promise((resolve) => setTimeout(resolve, 200));
+    }
+    return null;
+  };
+
+  // Generar QRs con un pequeño delay para no sobrecargar
+  for (let i = 0; i < props.tarjas.length; i++) {
+    const tarja = props.tarjas[i];
+
+    // Solo generar si no está ya generado
+    if (!qrGenerados.value[tarja.id]) {
+      // Verificar que el canvas esté disponible antes de generar
+      const canvas = await esperarCanvas(tarja.id);
+      if (canvas) {
+        await generarQRFila(tarja);
+      } else {
+        console.warn(
+          `Canvas no disponible para tarja ${tarja.id} después de esperar`
+        );
+      }
+
+      // Pequeño delay para no bloquear la UI
+      if (i < props.tarjas.length - 1) {
+        await new Promise((resolve) => setTimeout(resolve, 100));
+      }
+    }
+  }
+}
+
+// ============== LIFECYCLE ==============
+
+onMounted(async () => {
+  // Generar QRs automáticamente al montar el componente
+  await nextTick();
+  setTimeout(() => {
+    generarQRsAutomaticos();
+  }, 1000); // Aumentado a 1 segundo para dar más tiempo al DOM
+});
+
+// Watch para regenerar QRs cuando cambien las tarjas
+watch(
+  () => props.tarjas,
+  async (newTarjas) => {
+    if (newTarjas && newTarjas.length > 0) {
+      await nextTick();
+      setTimeout(() => {
+        generarQRsAutomaticos();
+      }, 500);
+    }
+  },
+  { immediate: false }
+);
 </script>
 
 <style scoped>
@@ -424,11 +566,31 @@ function obtenerMensajeVacio() {
 .tabla-scroll {
   overflow-x: auto;
   max-width: 100%;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: thin;
+}
+
+.tabla-scroll::-webkit-scrollbar {
+  height: 8px;
+}
+
+.tabla-scroll::-webkit-scrollbar-track {
+  background: #f1f5f9;
+  border-radius: 4px;
+}
+
+.tabla-scroll::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 4px;
+}
+
+.tabla-scroll::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
 }
 
 .tabla-tarjas {
   width: 100%;
-  min-width: 2800px; /* Ancho mínimo para mostrar todas las 19 columnas */
+  min-width: 2900px; /* Ancho mínimo para mostrar todas las columnas + QR */
   border-collapse: collapse;
   font-size: 0.875rem;
 }
@@ -1090,6 +1252,103 @@ function obtenerMensajeVacio() {
   font-size: 1rem;
 }
 
+/* Estilos QR */
+.col-qr {
+  width: 120px;
+  min-width: 120px;
+  max-width: 120px;
+  text-align: center;
+  padding: 0.75rem 0.25rem;
+  box-sizing: border-box;
+}
+
+.contenedor-qr {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+  width: 100%;
+  max-width: 100%;
+  overflow: hidden;
+}
+
+.qr-canvas {
+  border: 1px solid #e5e7eb;
+  border-radius: 4px;
+  background: white;
+  display: block;
+  max-width: 100%;
+  height: auto;
+}
+
+.acciones-qr {
+  display: flex;
+  gap: 0.25rem;
+  justify-content: center;
+  flex-wrap: nowrap;
+  width: 100%;
+  max-width: 100%;
+}
+
+.btn-qr-generar,
+.btn-qr-descargar {
+  width: 28px;
+  height: 28px;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.875rem;
+  transition: all 0.2s;
+}
+
+.btn-qr-generar {
+  background: linear-gradient(135deg, #dc2626, #ef4444);
+  color: white;
+  box-shadow: 0 1px 3px rgba(220, 38, 38, 0.2);
+}
+
+.btn-qr-generar:hover:not(:disabled) {
+  background: linear-gradient(135deg, #b91c1c, #dc2626);
+  transform: translateY(-1px);
+  box-shadow: 0 2px 6px rgba(220, 38, 38, 0.3);
+}
+
+.btn-qr-generar:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.btn-qr-descargar {
+  background: linear-gradient(135deg, #991b1b, #dc2626);
+  color: white;
+  box-shadow: 0 1px 3px rgba(153, 27, 27, 0.2);
+}
+
+.btn-qr-descargar:hover:not(:disabled) {
+  background: linear-gradient(135deg, #7f1d1d, #991b1b);
+  transform: translateY(-1px);
+  box-shadow: 0 2px 6px rgba(153, 27, 27, 0.3);
+}
+
+.btn-qr-descargar:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.spinner-mini {
+  width: 12px;
+  height: 12px;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  border-top: 2px solid white;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  display: inline-block;
+}
+
 /* Responsive */
 @media (max-width: 1200px) {
   .tabla-scroll {
@@ -1123,6 +1382,54 @@ function obtenerMensajeVacio() {
     width: 1.75rem;
     height: 1.75rem;
     font-size: 0.75rem;
+  }
+
+  .col-qr {
+    width: 90px;
+    min-width: 90px;
+    max-width: 90px;
+    padding: 0.5rem 0.125rem;
+  }
+
+  .contenedor-qr {
+    gap: 0.25rem;
+  }
+
+  .qr-canvas {
+    width: 48px !important;
+    height: 48px !important;
+  }
+
+  .btn-qr-generar,
+  .btn-qr-descargar {
+    width: 22px;
+    height: 22px;
+    font-size: 0.7rem;
+  }
+
+  .acciones-qr {
+    gap: 0.125rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .col-qr {
+    width: 70px;
+    min-width: 70px;
+    max-width: 70px;
+    padding: 0.25rem 0.05rem;
+  }
+
+  .qr-canvas {
+    width: 40px !important;
+    height: 40px !important;
+  }
+
+  .btn-qr-generar,
+  .btn-qr-descargar {
+    width: 18px;
+    height: 18px;
+    font-size: 0.6rem;
   }
 }
 </style>

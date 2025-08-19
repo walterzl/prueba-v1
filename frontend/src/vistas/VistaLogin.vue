@@ -124,7 +124,7 @@ async function manejarInicioSesion() {
   justify-content: center;
   align-items: center;
   min-height: 100vh;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, #dc2626 0%, #991b1b 100%);
   padding: 2rem;
   position: relative;
   overflow: hidden;
@@ -183,7 +183,7 @@ h1 {
   color: #1e293b;
   font-size: 2rem;
   font-weight: 700;
-  background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);
+  background: linear-gradient(135deg, #dc2626 0%, #991b1b 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
@@ -216,8 +216,8 @@ h1 {
 
 .entrada:focus {
   outline: none;
-  border-color: #4f46e5;
-  box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1);
+  border-color: #dc2626;
+  box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.1);
 }
 
 .entrada-error {
@@ -238,7 +238,7 @@ h1 {
   align-items: center;
   justify-content: center;
   padding: 0.75rem 1.5rem;
-  background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);
+  background: linear-gradient(135deg, #dc2626 0%, #ef4444 100%);
   color: white;
   border: none;
   border-radius: 8px;
@@ -251,7 +251,7 @@ h1 {
 
 .boton:hover:not(:disabled) {
   transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(79, 70, 229, 0.4);
+  box-shadow: 0 4px 12px rgba(220, 38, 38, 0.4);
 }
 
 .boton:disabled {
@@ -261,7 +261,7 @@ h1 {
 }
 
 .boton-primario {
-  background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);
+  background: linear-gradient(135deg, #dc2626 0%, #ef4444 100%);
 }
 
 .mensaje {

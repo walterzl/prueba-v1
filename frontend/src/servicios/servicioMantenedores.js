@@ -1,22 +1,30 @@
 import clienteApi from "@/servicios/api";
+import { usarCacheDatos } from "@/composables/usarCacheDatos";
 
 /**
- * Servicio para gestionar todos los mantenedores del sistema
- * Centraliza el acceso a datos maestros como materiales, proveedores, ubicaciones, etc.
+ * Servicio optimizado para gestionar todos los mantenedores del sistema
+ * Utiliza cache para reducir peticiones innecesarias
  */
+
+// Instancia del composable de cache
+const { obtenerConCache, invalidarCachePorPatron, generarClaveCache } =
+  usarCacheDatos();
+
 export const servicioMantenedores = {
   // ============== MATERIALES ==============
   /**
-   * Obtiene todos los materiales disponibles
+   * Obtiene todos los materiales disponibles (con cache)
    */
   async obtenerMateriales() {
-    try {
-      const respuesta = await clienteApi("/mantenedores/materiales");
-      return respuesta?.datos || respuesta || [];
-    } catch (error) {
-      console.error("Error al obtener materiales:", error);
-      return [];
-    }
+    return obtenerConCache("mantenedores_materiales", async () => {
+      try {
+        const respuesta = await clienteApi("/mantenedores/materiales");
+        return respuesta?.datos || respuesta || [];
+      } catch (error) {
+        console.error("Error al obtener materiales:", error);
+        return [];
+      }
+    });
   },
 
   /**
@@ -66,6 +74,10 @@ export const servicioMantenedores = {
         method: "POST",
         body: JSON.stringify(datosMaterial),
       });
+
+      // Invalidar cache de materiales
+      invalidarCachePorPatron("mantenedores_materiales");
+
       return respuesta?.datos || respuesta;
     } catch (error) {
       console.error("Error al crear material:", error);
@@ -92,16 +104,18 @@ export const servicioMantenedores = {
 
   // ============== PROVEEDORES ==============
   /**
-   * Obtiene todos los proveedores
+   * Obtiene todos los proveedores (con cache)
    */
   async obtenerProveedores() {
-    try {
-      const respuesta = await clienteApi("/mantenedores/proveedores");
-      return respuesta?.datos || respuesta || [];
-    } catch (error) {
-      console.error("Error al obtener proveedores:", error);
-      return [];
-    }
+    return obtenerConCache("mantenedores_proveedores", async () => {
+      try {
+        const respuesta = await clienteApi("/mantenedores/proveedores");
+        return respuesta?.datos || respuesta || [];
+      } catch (error) {
+        console.error("Error al obtener proveedores:", error);
+        return [];
+      }
+    });
   },
 
   /**
@@ -132,6 +146,10 @@ export const servicioMantenedores = {
         method: "POST",
         body: JSON.stringify(datosProveedor),
       });
+
+      // Invalidar cache de proveedores
+      invalidarCachePorPatron("mantenedores_proveedores");
+
       return respuesta?.datos || respuesta;
     } catch (error) {
       console.error("Error al crear proveedor:", error);
@@ -141,34 +159,43 @@ export const servicioMantenedores = {
 
   // ============== UBICACIONES ==============
   /**
-   * Obtiene todas las ubicaciones del sistema
+   * Obtiene todas las ubicaciones del sistema (con cache)
    */
   async obtenerUbicaciones() {
-    try {
-      const respuesta = await clienteApi("/mantenedores/ubicaciones");
-      return respuesta?.datos || respuesta || [];
-    } catch (error) {
-      console.error("Error al obtener ubicaciones:", error);
-      return [];
-    }
+    return obtenerConCache("mantenedores_ubicaciones", async () => {
+      try {
+        const respuesta = await clienteApi("/mantenedores/ubicaciones");
+        return respuesta?.datos || respuesta || [];
+      } catch (error) {
+        console.error("Error al obtener ubicaciones:", error);
+        return [];
+      }
+    });
   },
 
   /**
-   * Obtiene ubicaciones filtradas por planta
+   * Obtiene ubicaciones filtradas por planta (con cache)
    */
   async obtenerUbicacionesPorPlanta(planta) {
     if (!planta?.trim()) {
       throw new Error("La planta es requerida");
     }
-    try {
-      const respuesta = await clienteApi(
-        `/mantenedores/ubicaciones/planta/${planta}`
-      );
-      return respuesta?.datos || respuesta || [];
-    } catch (error) {
-      console.error("Error al obtener ubicaciones por planta:", error);
-      return [];
-    }
+
+    const claveCache = generarClaveCache("mantenedores_ubicaciones_planta", {
+      planta,
+    });
+
+    return obtenerConCache(claveCache, async () => {
+      try {
+        const respuesta = await clienteApi(
+          `/mantenedores/ubicaciones/planta/${planta}`
+        );
+        return respuesta?.datos || respuesta || [];
+      } catch (error) {
+        console.error("Error al obtener ubicaciones por planta:", error);
+        return [];
+      }
+    });
   },
 
   /**
@@ -181,6 +208,10 @@ export const servicioMantenedores = {
         method: "POST",
         body: JSON.stringify(datosUbicacion),
       });
+
+      // Invalidar cache de ubicaciones
+      invalidarCachePorPatron("mantenedores_ubicaciones");
+
       return respuesta?.datos || respuesta;
     } catch (error) {
       console.error("Error al crear ubicación:", error);

@@ -38,6 +38,17 @@
           <span class="icono-boton">🖨️</span>
           Imprimir Etiquetas
         </button>
+        <button
+          type="button"
+          class="boton boton-excel"
+          @click="exportarAExcel"
+          :disabled="
+            cargandoDatos || recepcionesFiltradas.length === 0 || exportando
+          "
+        >
+          <span class="icono-boton">📊</span>
+          {{ exportando ? "Exportando..." : "Excel" }}
+        </button>
       </div>
     </div>
 
@@ -366,7 +377,7 @@
     <TablaRecepcionLotes
       :recepciones="recepcionesFiltradas"
       :cargando="cargandoDatos"
-      :tiene-activos-filtros="tieneActivosFiltros"
+      :tiene-activos-filtros="Boolean(tieneActivosFiltros)"
       @ver-detalle="verDetalleRecepcion"
       @editar="editarRecepcion"
       @completar="completarRecepcion"
@@ -380,6 +391,7 @@
 import { ref, computed, onMounted, watch } from "vue";
 import { usarFormulario } from "@/composables/usarFormulario";
 import { usarPaginacion } from "@/composables/usarPaginacion";
+import { usarExportacionExcel } from "@/composables/usarExportacionExcel";
 import { servicioRecepcionLotes } from "@/servicios/servicioRecepcionLotes";
 import { servicioMantenedores } from "@/servicios/servicioMantenedores";
 import CampoEntrada from "@/componentes/CampoEntrada.vue";
@@ -396,9 +408,6 @@ import {
 import {
   fechaActualParaInput,
   fechaHoraActualParaInput,
-  formatearFecha,
-  formatearNumero,
-  formatearHora,
   filtrarPorTexto,
   ordenarPor,
   filtrarPorRangoFechas,
@@ -516,6 +525,14 @@ const paginacion = usarPaginacion({
   paginaActual: 1,
 });
 
+// Exportación Excel
+const {
+  exportando,
+  exportarAExcel: exportarExcel,
+  prepararDatosRecepciones,
+  obtenerConfiguracionColumnas,
+} = usarExportacionExcel();
+
 // Formulario de recepción
 const formulario = usarFormulario({
   datosIniciales: {
@@ -580,273 +597,18 @@ const fechaActual = computed(() => fechaActualParaInput());
 const fechaHoraActual = computed(() => fechaHoraActualParaInput());
 
 const tieneActivosFiltros = computed(() => {
-  return (
-    filtros.value.busqueda ||
-    filtros.value.estado ||
-    filtros.value.fechaDesde ||
-    filtros.value.fechaHasta ||
-    filtros.value.proveedor
-  );
+  const filtrosActivos = [
+    filtros.value.busqueda,
+    filtros.value.estado,
+    filtros.value.fechaDesde,
+    filtros.value.fechaHasta,
+    filtros.value.proveedor,
+  ].filter((filtro) => filtro && filtro.toString().trim() !== "");
+
+  return filtrosActivos.length > 0;
 });
 
-const columnasTabla = computed(() => [
-  {
-    clave: "id",
-    titulo: "ID",
-    ordenable: true,
-    ancho: "60px",
-    alineacion: "centro",
-  },
-  {
-    clave: "numero_recepcion",
-    titulo: "Nº Recepción",
-    ordenable: true,
-    ancho: "180px",
-  },
-  {
-    clave: "planta",
-    titulo: "Planta",
-    ordenable: true,
-    ancho: "100px",
-  },
-  {
-    clave: "fecha_recepcion",
-    titulo: "Fecha Recepción",
-    ordenable: true,
-    ancho: "140px",
-    tipo: "fechaHora",
-  },
-  {
-    clave: "guia_sii",
-    titulo: "Guía SII",
-    ordenable: true,
-    ancho: "150px",
-    formato: (valor) => valor || "N/A",
-  },
-  {
-    clave: "lote",
-    titulo: "Lote",
-    ordenable: true,
-    ancho: "180px",
-  },
-  {
-    clave: "cantidad",
-    titulo: "Cantidad",
-    ordenable: true,
-    ancho: "110px",
-    alineacion: "derecha",
-  },
-  {
-    clave: "pallets",
-    titulo: "Pallets",
-    ordenable: true,
-    ancho: "80px",
-    alineacion: "derecha",
-    formato: (valor) => valor || "0",
-  },
-  {
-    clave: "codigo_qr",
-    titulo: "Código QR",
-    ordenable: true,
-    ancho: "120px",
-    formato: (valor) => valor || "N/A",
-  },
-  {
-    clave: "estado",
-    titulo: "Estado",
-    ordenable: true,
-    ancho: "120px",
-    alineacion: "centro",
-  },
-  {
-    clave: "observaciones",
-    titulo: "Observaciones",
-    ordenable: true,
-    ancho: "200px",
-    formato: (valor) => valor || "N/A",
-  },
-  {
-    clave: "fecha_creacion",
-    titulo: "Fecha Creación",
-    ordenable: true,
-    ancho: "140px",
-    tipo: "fechaHora",
-  },
-  {
-    clave: "fecha_procesamiento",
-    titulo: "Fecha Procesamiento",
-    ordenable: true,
-    ancho: "160px",
-    tipo: "fechaHora",
-  },
-  {
-    clave: "proveedor_nombre",
-    titulo: "Proveedor",
-    ordenable: true,
-    ancho: "180px",
-  },
-  {
-    clave: "proveedor_activo",
-    titulo: "Estado Proveedor",
-    ordenable: true,
-    ancho: "130px",
-    alineacion: "centro",
-  },
-  {
-    clave: "material_codigo",
-    titulo: "Código Material",
-    ordenable: true,
-    ancho: "120px",
-  },
-  {
-    clave: "material_nombre",
-    titulo: "Material",
-    ordenable: true,
-    ancho: "280px",
-  },
-  {
-    clave: "material_unidad",
-    titulo: "Unidad",
-    ordenable: true,
-    ancho: "100px",
-    alineacion: "centro",
-  },
-  {
-    clave: "material_clasificacion",
-    titulo: "Clasificación",
-    ordenable: true,
-    ancho: "140px",
-  },
-  {
-    clave: "ubicacion_nombre",
-    titulo: "Ubicación",
-    ordenable: true,
-    ancho: "120px",
-  },
-  {
-    clave: "ubicacion_bodega",
-    titulo: "Bodega",
-    ordenable: true,
-    ancho: "140px",
-  },
-  {
-    clave: "ubicacion_planta",
-    titulo: "Planta Ubicación",
-    ordenable: true,
-    ancho: "140px",
-  },
-  {
-    clave: "usuario_completo",
-    titulo: "Usuario",
-    ordenable: true,
-    ancho: "180px",
-  },
-  {
-    clave: "pallets",
-    titulo: "Pallets",
-    ordenable: true,
-    ancho: "80px",
-    alineacion: "derecha",
-    formato: (valor) => valor || "0",
-  },
-  {
-    clave: "codigo_qr",
-    titulo: "Código QR",
-    ordenable: true,
-    ancho: "120px",
-    formato: (valor) => valor || "N/A",
-  },
-  {
-    clave: "estado",
-    titulo: "Estado",
-    ordenable: true,
-    ancho: "120px",
-    alineacion: "centro",
-  },
-  {
-    clave: "observaciones",
-    titulo: "Observaciones",
-    ordenable: true,
-    ancho: "200px",
-    formato: (valor) => valor || "N/A",
-  },
-  {
-    clave: "fecha_creacion",
-    titulo: "Fecha Creación",
-    ordenable: true,
-    ancho: "140px",
-    tipo: "fechaHora",
-  },
-  {
-    clave: "fecha_procesamiento",
-    titulo: "Fecha Procesamiento",
-    ordenable: true,
-    ancho: "160px",
-    tipo: "fechaHora",
-    formato: (valor) => (valor ? formatearFecha(valor) : "Sin procesar"),
-  },
-  {
-    clave: "proveedor_nombre",
-    titulo: "Proveedor",
-    ordenable: true,
-    ancho: "180px",
-  },
-  {
-    clave: "proveedor_activo",
-    titulo: "Proveedor Estado",
-    ordenable: true,
-    ancho: "130px",
-    alineacion: "centro",
-  },
-  {
-    clave: "material_codigo",
-    titulo: "Código Material",
-    ordenable: true,
-    ancho: "120px",
-  },
-  {
-    clave: "material_nombre",
-    titulo: "Material",
-    ordenable: true,
-    ancho: "250px",
-  },
-  {
-    clave: "material_unidad",
-    titulo: "Unidad Medida",
-    ordenable: true,
-    ancho: "120px",
-  },
-  {
-    clave: "material_clasificacion",
-    titulo: "Clasificación",
-    ordenable: true,
-    ancho: "120px",
-  },
-  {
-    clave: "ubicacion_nombre",
-    titulo: "Ubicación",
-    ordenable: true,
-    ancho: "140px",
-  },
-  {
-    clave: "ubicacion_bodega",
-    titulo: "Bodega",
-    ordenable: true,
-    ancho: "130px",
-  },
-  {
-    clave: "ubicacion_planta",
-    titulo: "Planta Ubicación",
-    ordenable: true,
-    ancho: "140px",
-  },
-  {
-    clave: "usuario_completo",
-    titulo: "Usuario",
-    ordenable: true,
-    ancho: "180px",
-  },
-]);
+// columnasTabla eliminada por ESLint cleanup
 
 // ============== MÉTODOS ==============
 
@@ -955,7 +717,7 @@ function aplicarFiltros() {
 
   // Aplicar filtro de fechas
   if (filtros.value.fechaDesde || filtros.value.fechaHasta) {
-    datos = filtrarPorRangoFechas(
+    filtrarPorRangoFechas(
       datos,
       "fecha_recepcion",
       filtros.value.fechaDesde,
@@ -966,29 +728,6 @@ function aplicarFiltros() {
   // Los datos se actualizan automáticamente a través del computed
   paginacion.totalRegistros.value = recepcionesFiltradas.value.length;
   paginacion.paginaActual.value = 1;
-}
-
-function manejarOrdenamiento({ campo, direccion }) {
-  ordenCampo.value = campo;
-  ordenDireccion.value = direccion;
-}
-
-function obtenerClaseEstado(estado) {
-  const mapaEstados = {
-    pendiente: "pendiente",
-    en_proceso: "proceso",
-    completado: "completado",
-    cancelado: "cancelado",
-  };
-
-  return mapaEstados[estado] || "neutral";
-}
-
-function obtenerMensajeVacio() {
-  if (tieneActivosFiltros.value) {
-    return "No se encontraron recepciones que coincidan con los filtros aplicados.";
-  }
-  return "Comience registrando la primera recepción de lotes.";
 }
 
 function limpiarFiltros() {
@@ -1076,6 +815,32 @@ function cerrarFormulario() {
 function mostrarMensajeExito(mensaje) {
   mensajeExito.value = mensaje;
   mensajeError.value = "";
+}
+
+async function exportarAExcel() {
+  try {
+    if (recepcionesFiltradas.value.length === 0) {
+      mensajeError.value = "No hay datos para exportar";
+      return;
+    }
+
+    const datosExcel = prepararDatosRecepciones(recepcionesFiltradas.value);
+    const configuracionColumnas = obtenerConfiguracionColumnas("recepciones");
+
+    const resultado = exportarExcel(
+      datosExcel,
+      "recepciones_reporte",
+      "Recepciones",
+      { anchoColumnas: configuracionColumnas }
+    );
+
+    mostrarMensajeExito(
+      `Reporte exportado exitosamente: ${resultado.nombreArchivo} (${resultado.registrosExportados} registros)`
+    );
+  } catch (error) {
+    console.error("Error al exportar a Excel:", error);
+    mensajeError.value = `Error al generar el reporte Excel: ${error.message}`;
+  }
 }
 
 // ============== WATCHERS ==============
@@ -1201,6 +966,19 @@ onMounted(async () => {
   background: #f9fafb;
   border-color: #9ca3af;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.boton-excel {
+  background: linear-gradient(135deg, #059669 0%, #16a34a 100%);
+  color: white;
+  border: none;
+  box-shadow: 0 2px 8px rgba(5, 150, 105, 0.2);
+}
+
+.boton-excel:hover:not(:disabled) {
+  background: linear-gradient(135deg, #047857 0%, #15803d 100%);
+  box-shadow: 0 4px 16px rgba(5, 150, 105, 0.3);
+  transform: translateY(-1px);
 }
 
 .icono-boton {

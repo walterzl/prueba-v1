@@ -38,25 +38,78 @@
           <span class="icono-boton">🖨️</span>
           Imprimir
         </button>
+        <button
+          type="button"
+          class="boton boton-excel"
+          @click="exportarAExcel"
+          :disabled="
+            cargandoDatos || tarjasFiltradas.length === 0 || exportando
+          "
+        >
+          <span class="icono-boton">📊</span>
+          {{ exportando ? "Exportando..." : "Excel" }}
+        </button>
+        <div class="grupo-botones-qr">
+          <button
+            type="button"
+            class="boton boton-qr"
+            @click="abrirModalQR('escanear')"
+            :disabled="cargandoDatos"
+          >
+            <span class="icono-boton">📱</span>
+            Escanear QR
+          </button>
+          <button
+            type="button"
+            class="boton boton-qr-secundario"
+            @click="mostrarMenuQR = !mostrarMenuQR"
+            :disabled="cargandoDatos || tarjasFiltradas.length === 0"
+            title="Generar códigos QR"
+          >
+            <span class="icono-boton">⚙️</span>
+          </button>
+
+          <!-- Menú desplegable QR -->
+          <div v-if="mostrarMenuQR" class="menu-qr-desplegable" @click.stop>
+            <button
+              type="button"
+              class="item-menu-qr"
+              @click="generarQRParaPrimera()"
+              :disabled="tarjasFiltradas.length === 0"
+            >
+              <span class="icono-menu">🏷️</span>
+              QR Primera Tarja
+            </button>
+            <button
+              type="button"
+              class="item-menu-qr"
+              @click="generarQRMasivo()"
+              :disabled="tarjasFiltradas.length === 0"
+            >
+              <span class="icono-menu">📦</span>
+              QR Masivo ({{ tarjasFiltradas.length }})
+            </button>
+          </div>
+        </div>
       </div>
     </div>
 
     <!-- Mensajes de estado -->
     <MensajeEstado
-      v-if="mensajeExito"
+      v-if="mensajeExito && mensajeExito.length > 0"
       tipo="exito"
       :mensaje="mensajeExito"
-      :visible="Boolean(mensajeExito)"
+      :visible="true"
       @cerrar="mensajeExito = ''"
       auto-cerrar
       :tiempo-auto-cierre="3000"
     />
 
     <MensajeEstado
-      v-if="mensajeError"
+      v-if="mensajeError && mensajeError.length > 0"
       tipo="error"
       :mensaje="mensajeError"
-      :visible="Boolean(mensajeError)"
+      :visible="true"
       @cerrar="mensajeError = ''"
     />
 
@@ -70,7 +123,6 @@
             placeholder="Número de tarja, material, lote..."
             tipo="search"
             :mostrar-etiqueta="false"
-            @cambio="aplicarFiltros"
           />
 
           <CampoEntrada
@@ -79,7 +131,6 @@
             tipo="select"
             :opciones="plantasDisponibles"
             :mostrar-etiqueta="false"
-            @cambio="aplicarFiltros"
           />
 
           <CampoEntrada
@@ -88,7 +139,6 @@
             tipo="select"
             :opciones="tiposTarjaDisponibles"
             :mostrar-etiqueta="false"
-            @cambio="aplicarFiltros"
           />
         </div>
 
@@ -98,7 +148,6 @@
             etiqueta="Desde"
             tipo="date"
             :maximo="filtros.fechaHasta || fechaActual"
-            @cambio="aplicarFiltros"
           />
 
           <CampoEntrada
@@ -107,7 +156,6 @@
             tipo="date"
             :minimo="filtros.fechaDesde"
             :maximo="fechaActual"
-            @cambio="aplicarFiltros"
           />
 
           <CampoEntrada
@@ -116,7 +164,23 @@
             tipo="select"
             :opciones="estadosDisponibles"
             :mostrar-etiqueta="false"
-            @cambio="aplicarFiltros"
+          />
+
+          <CampoEntrada
+            v-model="filtros.proveedor"
+            etiqueta="Proveedor"
+            tipo="select"
+            :opciones="proveedoresDisponibles"
+            :mostrar-etiqueta="false"
+          />
+        </div>
+
+        <div class="filtros-fila-tercera">
+          <CampoEntrada
+            v-model="filtros.lote"
+            etiqueta="Lote"
+            placeholder="Buscar por lote..."
+            tipo="text"
           />
 
           <button
@@ -386,7 +450,7 @@
       <TablaTarjas
         :tarjas="tarjasFiltradas"
         :cargando="cargandoDatos"
-        :tiene-activos-filtros="tieneActivosFiltros"
+        :tiene-activos-filtros="Boolean(tieneActivosFiltros)"
         @ver-detalle="verDetalleTarja"
         @editar="editarTarja"
         @cerrar="cerrarTarja"
@@ -395,18 +459,31 @@
         @crear-tarja="mostrarFormulario = true"
       />
     </div>
+
+    <!-- Modal de código QR -->
+    <ModalCodigoQR
+      :visible="modalQRVisible"
+      :datos-tarja="tarjaSeleccionadaQR"
+      :modo="modoQR"
+      @cerrar="cerrarModalQR"
+      @qr-generado="manejarQRGenerado"
+      @qr-escaneado="manejarQREscaneado"
+      @datos-procesados="manejarDatosProcesados"
+    />
   </div>
 </template>
 
 <script setup>
-import { ref, computed, onMounted, watch } from "vue";
+import { ref, computed, onMounted, onUnmounted, watch } from "vue";
 import { usarFormulario } from "@/composables/usarFormulario";
 import { usarPaginacion } from "@/composables/usarPaginacion";
+import { usarExportacionExcel } from "@/composables/usarExportacionExcel";
 import { servicioTarjas } from "@/servicios/servicioTarjas";
 import { servicioMantenedores } from "@/servicios/servicioMantenedores";
 import CampoEntrada from "@/componentes/CampoEntrada.vue";
 import MensajeEstado from "@/componentes/MensajeEstado.vue";
 import TablaTarjas from "@/componentes/tablas/TablaTarjas.vue";
+import ModalCodigoQR from "@/componentes/ModalCodigoQR.vue";
 import {
   PLANTAS,
   TIPOS_TARJA,
@@ -416,15 +493,7 @@ import {
   MENSAJES,
   obtenerOpcionesSelect,
 } from "@/utilidades/constantes";
-import {
-  fechaActualParaInput,
-  formatearFecha,
-  formatearNumero,
-  filtrarPorTexto,
-  ordenarPor,
-  filtrarPorRangoFechas,
-  generarId,
-} from "@/utilidades/auxiliares";
+import { fechaActualParaInput, generarId } from "@/utilidades/auxiliares";
 
 // ============== ESTADO REACTIVO ==============
 
@@ -440,14 +509,22 @@ const cargandoDatos = ref(false);
 const mensajeExito = ref("");
 const mensajeError = ref("");
 
-// Filtros
+// Modal QR
+const modalQRVisible = ref(false);
+const tarjaSeleccionadaQR = ref(null);
+const modoQR = ref("escanear"); // 'generar' | 'escanear'
+const mostrarMenuQR = ref(false);
+
+// Filtros basados en campos reales de la API
 const filtros = ref({
-  busqueda: "",
-  planta: "Rancagua",
-  tipoTarja: "",
-  fechaDesde: "",
-  fechaHasta: "",
-  estado: "",
+  busqueda: "", // Busca en numero_tarja, codigo_material, nombre_material, lote, nombre_proveedor
+  planta: "Rancagua", // Campo real: planta
+  tipoTarja: "", // Campo real: tipo_tarja
+  fechaDesde: "", // Campo real: fecha_generacion (desde)
+  fechaHasta: "", // Campo real: fecha_generacion (hasta)
+  estado: "", // Campo real: estado
+  proveedor: "", // Campo real: nombre_proveedor
+  lote: "", // Campo real: lote
 });
 
 // Paginación
@@ -455,6 +532,14 @@ const paginacion = usarPaginacion({
   elementosPorPagina: 25,
   paginaActual: 1,
 });
+
+// Exportación Excel
+const {
+  exportando,
+  exportarAExcel: exportarExcel,
+  prepararDatosTarjas,
+  obtenerConfiguracionColumnas,
+} = usarExportacionExcel();
 
 // Formulario de tarja
 const formulario = usarFormulario({
@@ -515,16 +600,21 @@ const ubicacionesDisponibles = computed(() => {
 const fechaActual = computed(() => fechaActualParaInput());
 
 const tieneActivosFiltros = computed(() => {
-  return (
-    filtros.value.busqueda ||
-    filtros.value.tipoTarja ||
-    filtros.value.fechaDesde ||
-    filtros.value.fechaHasta ||
-    filtros.value.estado
-  );
+  const filtrosActivos = [
+    filtros.value.busqueda,
+    filtros.value.tipoTarja,
+    filtros.value.fechaDesde,
+    filtros.value.fechaHasta,
+    filtros.value.estado,
+    filtros.value.proveedor,
+    filtros.value.lote,
+  ].filter((filtro) => filtro && filtro.toString().trim() !== "");
+
+  return filtrosActivos.length > 0;
 });
 
-const columnasTabla = computed(() => [
+// columnasTabla eliminada por ESLint cleanup
+/*const columnasTabla = computed(() => [
   {
     clave: "numero_tarja",
     titulo: "Nº Tarja",
@@ -590,7 +680,7 @@ const columnasTabla = computed(() => [
     ancho: "140px",
     alineacion: "centro",
   },
-]);
+]);*/
 
 // ============== MÉTODOS ==============
 
@@ -659,35 +749,55 @@ async function buscarMaterial() {
 function aplicarFiltros() {
   let datos = [...tarjas.value];
 
-  // Aplicar filtro de búsqueda
+  // Aplicar filtro de búsqueda (en campos reales)
   if (filtros.value.busqueda) {
-    datos = filtrarPorTexto(datos, filtros.value.busqueda, [
-      "numero_tarja",
-      "codigo_material",
-      "nombre_material",
-      "lote",
-      "proveedor",
-    ]);
+    const busqueda = filtros.value.busqueda.toLowerCase();
+    datos = datos.filter((item) => {
+      return (
+        item.numero_tarja?.toLowerCase().includes(busqueda) ||
+        item.material?.codigo?.toLowerCase().includes(busqueda) ||
+        item.material?.nombre?.toLowerCase().includes(busqueda) ||
+        item.lote?.toLowerCase().includes(busqueda) ||
+        item.proveedor?.nombre?.toLowerCase().includes(busqueda)
+      );
+    });
   }
 
-  // Aplicar filtro de tipo de tarja
+  // Aplicar filtro de tipo de tarja (campo real)
   if (filtros.value.tipoTarja) {
     datos = datos.filter((item) => item.tipo_tarja === filtros.value.tipoTarja);
   }
 
-  // Aplicar filtro de estado
+  // Aplicar filtro de estado (campo real)
   if (filtros.value.estado) {
     datos = datos.filter((item) => item.estado === filtros.value.estado);
   }
 
-  // Aplicar filtro de fechas
-  if (filtros.value.fechaDesde || filtros.value.fechaHasta) {
-    datos = filtrarPorRangoFechas(
-      datos,
-      "fecha_tarja",
-      filtros.value.fechaDesde,
-      filtros.value.fechaHasta
+  // Aplicar filtro de proveedor (campo real)
+  if (filtros.value.proveedor) {
+    datos = datos.filter(
+      (item) => item.proveedor?.nombre === filtros.value.proveedor
     );
+  }
+
+  // Aplicar filtro de lote (campo real)
+  if (filtros.value.lote) {
+    const lote = filtros.value.lote.toLowerCase();
+    datos = datos.filter((item) => item.lote?.toLowerCase().includes(lote));
+  }
+
+  // Aplicar filtro de fechas (campo real: fecha_generacion)
+  if (filtros.value.fechaDesde || filtros.value.fechaHasta) {
+    datos = datos.filter((item) => {
+      const fechaItem = new Date(item.fecha_generacion);
+      const cumpleFechaDesde =
+        !filtros.value.fechaDesde ||
+        fechaItem >= new Date(filtros.value.fechaDesde);
+      const cumpleFechaHasta =
+        !filtros.value.fechaHasta ||
+        fechaItem <= new Date(filtros.value.fechaHasta);
+      return cumpleFechaDesde && cumpleFechaHasta;
+    });
   }
 
   tarjasFiltradas.value = datos;
@@ -695,56 +805,16 @@ function aplicarFiltros() {
   paginacion.paginaActual.value = 1;
 }
 
-function manejarOrdenamiento({ campo, direccion }) {
-  tarjasFiltradas.value = ordenarPor(tarjasFiltradas.value, campo, direccion);
-}
-
-function obtenerClaseTipoTarja(tipo) {
-  const mapaTipos = {
-    CAA: "caa",
-    BODEGA: "bodega",
-  };
-
-  return mapaTipos[tipo] || "neutral";
-}
-
-function obtenerClaseCondicion(condicion) {
-  const mapaCondiciones = {
-    Armado: "armado",
-    "Por Armar": "por-armar",
-    "Semi Armado": "semi-armado",
-    "No Aplica": "no-aplica",
-  };
-
-  return mapaCondiciones[condicion] || "neutral";
-}
-
-function obtenerClaseEstado(estado) {
-  const mapaEstados = {
-    activo: "activo",
-    agotado: "agotado",
-    cerrado: "cerrado",
-    vencido: "vencido",
-  };
-
-  return mapaEstados[estado] || "neutral";
-}
-
-function obtenerMensajeVacio() {
-  if (tieneActivosFiltros.value) {
-    return "No se encontraron tarjas que coincidan con los filtros aplicados.";
-  }
-  return "Comience registrando la primera tarja del sistema.";
-}
-
 function limpiarFiltros() {
   filtros.value = {
     busqueda: "",
-    planta: filtros.value.planta,
+    planta: filtros.value.planta, // Mantener la planta seleccionada
     tipoTarja: "",
     fechaDesde: "",
     fechaHasta: "",
     estado: "",
+    proveedor: "",
+    lote: "",
   };
   aplicarFiltros();
 }
@@ -821,6 +891,154 @@ function mostrarMensajeExito(mensaje) {
   mensajeError.value = "";
 }
 
+async function exportarAExcel() {
+  try {
+    if (tarjasFiltradas.value.length === 0) {
+      mensajeError.value = "No hay datos para exportar";
+      return;
+    }
+
+    const datosExcel = prepararDatosTarjas(tarjasFiltradas.value);
+    const configuracionColumnas = obtenerConfiguracionColumnas("tarjas");
+
+    const resultado = exportarExcel(datosExcel, "tarjas_reporte", "Tarjas", {
+      anchoColumnas: configuracionColumnas,
+    });
+
+    mostrarMensajeExito(
+      `Reporte exportado exitosamente: ${resultado.nombreArchivo} (${resultado.registrosExportados} registros)`
+    );
+  } catch (error) {
+    console.error("Error al exportar a Excel:", error);
+    mensajeError.value = `Error al generar el reporte Excel: ${error.message}`;
+  }
+}
+
+// ============== FUNCIONES QR ==============
+
+function abrirModalQR(modo, tarja = null) {
+  modoQR.value = modo;
+  tarjaSeleccionadaQR.value = tarja;
+  modalQRVisible.value = true;
+}
+
+function cerrarModalQR() {
+  modalQRVisible.value = false;
+  tarjaSeleccionadaQR.value = null;
+  modoQR.value = "escanear";
+  mostrarMenuQR.value = false;
+}
+
+function manejarQRGenerado(evento) {
+  const { tarja } = evento;
+  console.log("QR generado para tarja:", tarja.numero_tarja);
+  mostrarMensajeExito(
+    `Código QR generado exitosamente para la tarja ${tarja.numero_tarja}`
+  );
+}
+
+function manejarQREscaneado(evento) {
+  const { datos, textoOriginal } = evento;
+  console.log("QR escaneado:", datos);
+
+  if (typeof datos === "object" && datos.numeroTarja) {
+    mostrarMensajeExito(`QR escaneado: Tarja ${datos.numeroTarja} detectada`);
+
+    // Buscar la tarja en la lista actual
+    const tarjaEncontrada = tarjas.value.find(
+      (t) => t.numero_tarja === datos.numeroTarja || t.id === datos.id
+    );
+
+    if (tarjaEncontrada) {
+      // Mostrar información de la tarja encontrada
+      console.log("Tarja encontrada en el sistema:", tarjaEncontrada);
+      mostrarMensajeExito(
+        `Tarja ${datos.numeroTarja} encontrada en el sistema`
+      );
+    } else {
+      mostrarMensajeExito(
+        `Tarja ${datos.numeroTarja} escaneada (no encontrada en la vista actual)`
+      );
+    }
+  } else {
+    mostrarMensajeExito("Código QR escaneado exitosamente");
+    console.log("Datos QR no estructurados:", textoOriginal);
+  }
+}
+
+function manejarDatosProcesados(evento) {
+  const { datos, esObjetoTarja } = evento;
+
+  if (esObjetoTarja && datos.numeroTarja) {
+    // Procesar datos de tarja
+    console.log("Procesando datos de tarja:", datos);
+
+    // Buscar la tarja en el sistema
+    const tarjaEncontrada = tarjas.value.find(
+      (t) => t.numero_tarja === datos.numeroTarja || t.id === datos.id
+    );
+
+    if (tarjaEncontrada) {
+      // Abrir detalles de la tarja encontrada
+      verDetalleTarja(tarjaEncontrada);
+      mostrarMensajeExito(
+        `Mostrando detalles de la tarja ${datos.numeroTarja}`
+      );
+    } else {
+      // Mostrar información disponible
+      console.log("Información de tarja escaneada:", datos);
+      mostrarMensajeExito(
+        `Datos de tarja ${datos.numeroTarja} procesados correctamente`
+      );
+    }
+  } else {
+    // Procesar datos genéricos
+    console.log("Datos procesados:", datos);
+    mostrarMensajeExito("Datos del código QR procesados correctamente");
+  }
+
+  cerrarModalQR();
+}
+
+function generarQRParaPrimera() {
+  if (tarjasFiltradas.value.length === 0) return;
+
+  const primeraTarja = tarjasFiltradas.value[0];
+  abrirModalQR("generar", primeraTarja);
+  mostrarMenuQR.value = false;
+}
+
+function generarQRMasivo() {
+  // Para QR masivo, podríamos generar QRs para todas las tarjas
+  // Por ahora, mostraremos una funcionalidad de ejemplo
+  mostrarMenuQR.value = false;
+
+  if (tarjasFiltradas.value.length === 0) return;
+
+  // Generar QR para las primeras tarjas o mostrar modal de selección
+  const confirmacion = confirm(
+    `¿Generar códigos QR para ${tarjasFiltradas.value.length} tarjas? Esto puede tomar tiempo.`
+  );
+
+  if (confirmacion) {
+    mostrarMensajeExito(
+      `Iniciando generación masiva de ${tarjasFiltradas.value.length} códigos QR...`
+    );
+    // Aquí podrías implementar la lógica de generación masiva
+    console.log(
+      "Generando QR masivo para tarjas:",
+      tarjasFiltradas.value.map((t) => t.numero_tarja)
+    );
+  }
+}
+
+// Cerrar menú QR al hacer clic fuera
+function cerrarMenuQR(evento) {
+  if (!evento.target.closest(".grupo-botones-qr")) {
+    mostrarMenuQR.value = false;
+  }
+}
+
 // ============== WATCHERS ==============
 
 watch(
@@ -838,6 +1056,8 @@ watch(
     filtros.value.fechaDesde,
     filtros.value.fechaHasta,
     filtros.value.estado,
+    filtros.value.proveedor,
+    filtros.value.lote,
   ],
   () => {
     aplicarFiltros();
@@ -848,6 +1068,14 @@ watch(
 
 onMounted(async () => {
   await Promise.all([cargarTarjas(), cargarProveedores(), cargarUbicaciones()]);
+
+  // Event listener para cerrar menú QR
+  document.addEventListener("click", cerrarMenuQR);
+});
+
+// Limpiar event listener
+onUnmounted(() => {
+  document.removeEventListener("click", cerrarMenuQR);
 });
 </script>
 
@@ -942,6 +1170,109 @@ onMounted(async () => {
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }
 
+.boton-excel {
+  background: linear-gradient(135deg, #059669 0%, #16a34a 100%);
+  color: white;
+  border: none;
+  box-shadow: 0 2px 8px rgba(5, 150, 105, 0.2);
+}
+
+.boton-excel:hover:not(:disabled) {
+  background: linear-gradient(135deg, #047857 0%, #15803d 100%);
+  box-shadow: 0 4px 16px rgba(5, 150, 105, 0.3);
+  transform: translateY(-1px);
+}
+
+.boton-qr {
+  background: linear-gradient(135deg, #dc2626 0%, #ef4444 100%);
+  color: white;
+  border: none;
+  box-shadow: 0 2px 8px rgba(220, 38, 38, 0.2);
+}
+
+.boton-qr:hover:not(:disabled) {
+  background: linear-gradient(135deg, #b91c1c 0%, #dc2626 100%);
+  box-shadow: 0 4px 16px rgba(220, 38, 38, 0.3);
+  transform: translateY(-1px);
+}
+
+.grupo-botones-qr {
+  position: relative;
+  display: flex;
+  gap: 0;
+  flex-shrink: 0;
+  min-width: 0;
+}
+
+.boton-qr-secundario {
+  background: linear-gradient(135deg, #991b1b 0%, #dc2626 100%);
+  color: white;
+  border: none;
+  padding: 0.5rem 0.75rem;
+  border-radius: 0 0.5rem 0.5rem 0;
+  cursor: pointer;
+  font-weight: 500;
+  transition: all 0.2s;
+  box-shadow: 0 2px 8px rgba(153, 27, 27, 0.2);
+  margin-left: -1px;
+  border-left: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.boton-qr {
+  border-radius: 0.5rem 0 0 0.5rem;
+}
+
+.boton-qr-secundario:hover:not(:disabled) {
+  background: linear-gradient(135deg, #7f1d1d 0%, #991b1b 100%);
+  box-shadow: 0 4px 16px rgba(153, 27, 27, 0.3);
+  transform: translateY(-1px);
+}
+
+.menu-qr-desplegable {
+  position: absolute;
+  top: 100%;
+  right: 0;
+  background: white;
+  border: 1px solid #e5e7eb;
+  border-radius: 0.5rem;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+  z-index: 1000;
+  min-width: 200px;
+  padding: 0.5rem 0;
+  margin-top: 0.25rem;
+}
+
+.item-menu-qr {
+  width: 100%;
+  padding: 0.75rem 1rem;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  text-align: left;
+  color: #374151;
+  font-size: 0.875rem;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.item-menu-qr:hover:not(:disabled) {
+  background: #f3f4f6;
+  color: #7c3aed;
+}
+
+.item-menu-qr:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.icono-menu {
+  font-size: 1rem;
+  width: 1.2rem;
+  text-align: center;
+}
+
 .icono-boton {
   font-size: 1rem;
   line-height: 1;
@@ -970,6 +1301,16 @@ onMounted(async () => {
   grid-template-columns: auto auto auto auto;
   gap: 1rem;
   align-items: end;
+}
+
+.filtros-fila-tercera {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 1rem;
+  align-items: end;
+  margin-top: 1rem;
+  padding-top: 1rem;
+  border-top: 1px solid #f1f5f9;
 }
 
 .boton-limpiar {
@@ -1363,7 +1704,8 @@ onMounted(async () => {
   }
 
   .filtros-fila-principal,
-  .filtros-fila-secundaria {
+  .filtros-fila-secundaria,
+  .filtros-fila-tercera {
     grid-template-columns: 1fr;
   }
 
@@ -1393,6 +1735,25 @@ onMounted(async () => {
 @media (max-width: 640px) {
   .acciones-principales {
     flex-direction: column;
+    gap: 0.75rem;
+  }
+
+  .grupo-botones-qr {
+    order: -1;
+    align-self: stretch;
+  }
+
+  .boton-qr,
+  .boton-qr-secundario {
+    padding: 0.75rem 1rem;
+    font-size: 0.875rem;
+  }
+
+  .menu-qr-desplegable {
+    right: auto;
+    left: 0;
+    width: 100%;
+    min-width: auto;
   }
 
   .encabezado-tabla {
@@ -1410,6 +1771,27 @@ onMounted(async () => {
 
   .nombre-material {
     max-width: 120px;
+  }
+}
+
+@media (max-width: 480px) {
+  .acciones-principales {
+    gap: 0.5rem;
+  }
+
+  .boton {
+    padding: 0.625rem 1rem;
+    font-size: 0.875rem;
+  }
+
+  .boton-qr,
+  .boton-qr-secundario {
+    padding: 0.625rem 0.875rem;
+    font-size: 0.8rem;
+  }
+
+  .icono-boton {
+    font-size: 0.875rem;
   }
 }
 </style>

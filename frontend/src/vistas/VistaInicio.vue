@@ -101,9 +101,6 @@
 
 <script setup>
 import { RouterLink } from "vue-router";
-import { usarAlmacenAutenticacion } from "@/almacen/almacenAuth";
-
-const autenticacion = usarAlmacenAutenticacion();
 </script>
 
 <style scoped>

@@ -1,4 +1,4 @@
-import { usarAlmacenAutenticacion } from "@/almacen/almacenAuth";
+import { usarAlmacenAutenticacion } from "@/almacen/almacenAuthSimple";
 
 const URL_BASE_API = "/api";
 

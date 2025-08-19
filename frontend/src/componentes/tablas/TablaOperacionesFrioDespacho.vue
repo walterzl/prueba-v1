@@ -315,8 +315,6 @@
 </template>
 
 <script setup>
-import { computed } from "vue";
-
 // Props
 const props = defineProps({
   operaciones: {
@@ -330,11 +328,12 @@ const props = defineProps({
   tieneActivosFiltros: {
     type: Boolean,
     default: false,
+    validator: (value) => typeof value === "boolean",
   },
 });
 
 // Emits
-const emit = defineEmits([
+defineEmits([
   "ver-detalle",
   "editar",
   "completar",
@@ -402,22 +401,6 @@ function obtenerTextoEstado(estado) {
     pausado: "Pausado",
   };
   return mapaTextos[estado] || estado;
-}
-
-function obtenerClaseTemperatura(temperatura) {
-  const temp = parseFloat(temperatura);
-  if (temp >= 10) return "temperatura-alta";
-  if (temp >= 0) return "temperatura-media";
-  if (temp >= -10) return "temperatura-baja";
-  return "temperatura-congelacion";
-}
-
-function puedeEditar(operacion) {
-  return ["pendiente", "en_proceso", "pausado"].includes(operacion.estado);
-}
-
-function puedeCompletar(operacion) {
-  return ["en_proceso"].includes(operacion.estado);
 }
 
 function obtenerMensajeVacio() {

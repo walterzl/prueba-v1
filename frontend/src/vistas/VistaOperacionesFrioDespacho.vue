@@ -40,6 +40,17 @@
           <span class="icono-boton">📊</span>
           Reporte
         </button>
+        <button
+          type="button"
+          class="boton boton-excel"
+          @click="exportarAExcel"
+          :disabled="
+            cargandoDatos || operacionesFiltradas.length === 0 || exportando
+          "
+        >
+          <span class="icono-boton">📊</span>
+          {{ exportando ? "Exportando..." : "Excel" }}
+        </button>
       </div>
     </div>
 
@@ -376,7 +387,7 @@
       <TablaOperacionesFrioDespacho
         :operaciones="operacionesFiltradas"
         :cargando="cargandoDatos"
-        :tiene-activos-filtros="tieneActivosFiltros"
+        :tiene-activos-filtros="Boolean(tieneActivosFiltros)"
         @ver-detalle="verDetalleOperacion"
         @editar="editarOperacion"
         @completar="completarOperacion"
@@ -391,6 +402,7 @@
 import { ref, computed, onMounted, watch } from "vue";
 import { usarFormulario } from "@/composables/usarFormulario";
 import { usarPaginacion } from "@/composables/usarPaginacion";
+import { usarExportacionExcel } from "@/composables/usarExportacionExcel";
 import { servicioOperacionesFrioDespacho } from "@/servicios/servicioOperacionesFrioDespacho";
 import { servicioMantenedores } from "@/servicios/servicioMantenedores";
 import CampoEntrada from "@/componentes/CampoEntrada.vue";
@@ -407,10 +419,7 @@ import {
 import {
   fechaActualParaInput,
   fechaHoraActualParaInput,
-  formatearFecha,
-  formatearNumero,
   filtrarPorTexto,
-  ordenarPor,
   filtrarPorRangoFechas,
   generarId,
 } from "@/utilidades/auxiliares";
@@ -443,6 +452,14 @@ const paginacion = usarPaginacion({
   elementosPorPagina: 25,
   paginaActual: 1,
 });
+
+// Exportación Excel
+const {
+  exportando,
+  exportarAExcel: exportarExcel,
+  prepararDatosOperaciones,
+  obtenerConfiguracionColumnas,
+} = usarExportacionExcel();
 
 // Formulario de operación
 const formulario = usarFormulario({
@@ -495,82 +512,16 @@ const fechaActual = computed(() => fechaActualParaInput());
 const fechaHoraActual = computed(() => fechaHoraActualParaInput());
 
 const tieneActivosFiltros = computed(() => {
-  return (
-    filtros.value.busqueda ||
-    filtros.value.tipoOperacion ||
-    filtros.value.fechaDesde ||
-    filtros.value.fechaHasta ||
-    filtros.value.estado
-  );
-});
+  const filtrosActivos = [
+    filtros.value.busqueda,
+    filtros.value.tipoOperacion,
+    filtros.value.fechaDesde,
+    filtros.value.fechaHasta,
+    filtros.value.estado,
+  ].filter((filtro) => filtro && filtro.toString().trim() !== "");
 
-const columnasTabla = computed(() => [
-  {
-    clave: "numero_operacion",
-    titulo: "Nº Operación",
-    ordenable: true,
-    ancho: "140px",
-  },
-  {
-    clave: "tipo_operacion",
-    titulo: "Tipo",
-    ordenable: true,
-    ancho: "120px",
-    alineacion: "centro",
-  },
-  {
-    clave: "material",
-    titulo: "Material",
-    ordenable: true,
-    ancho: "180px",
-  },
-  {
-    clave: "lote",
-    titulo: "Lote",
-    ordenable: true,
-    ancho: "120px",
-  },
-  {
-    clave: "cantidad_operacion",
-    titulo: "Cantidad",
-    ordenable: true,
-    ancho: "100px",
-    alineacion: "derecha",
-  },
-  {
-    clave: "ubicacion_origen",
-    titulo: "Ubicación",
-    ordenable: true,
-    ancho: "140px",
-  },
-  {
-    clave: "temperatura",
-    titulo: "Temp. (°C)",
-    ordenable: true,
-    ancho: "100px",
-    alineacion: "centro",
-  },
-  {
-    clave: "responsable",
-    titulo: "Responsable",
-    ordenable: true,
-    ancho: "140px",
-  },
-  {
-    clave: "estado",
-    titulo: "Estado",
-    ordenable: true,
-    ancho: "120px",
-    alineacion: "centro",
-  },
-  {
-    clave: "acciones",
-    titulo: "Acciones",
-    ordenable: false,
-    ancho: "120px",
-    alineacion: "centro",
-  },
-]);
+  return filtrosActivos.length > 0;
+});
 
 // ============== MÉTODOS ==============
 
@@ -668,43 +619,6 @@ function aplicarFiltros() {
   paginacion.paginaActual.value = 1;
 }
 
-function manejarOrdenamiento({ campo, direccion }) {
-  operacionesFiltradas.value = ordenarPor(
-    operacionesFiltradas.value,
-    campo,
-    direccion
-  );
-}
-
-function obtenerClaseTipoOperacion(tipo) {
-  const mapaTipos = {
-    consumo: "consumo",
-    despacho: "despacho",
-    preparacion: "preparacion",
-    almacenaje: "almacenaje",
-  };
-
-  return mapaTipos[tipo] || "neutral";
-}
-
-function obtenerClaseEstado(estado) {
-  const mapaEstados = {
-    pendiente: "pendiente",
-    en_proceso: "proceso",
-    completado: "completado",
-    cancelado: "cancelado",
-  };
-
-  return mapaEstados[estado] || "neutral";
-}
-
-function obtenerMensajeVacio() {
-  if (tieneActivosFiltros.value) {
-    return "No se encontraron operaciones que coincidan con los filtros aplicados.";
-  }
-  return "Comience registrando la primera operación de frío y despacho.";
-}
-
 function limpiarFiltros() {
   filtros.value = {
     busqueda: "",
@@ -780,6 +694,32 @@ function cerrarFormulario() {
 function mostrarMensajeExito(mensaje) {
   mensajeExito.value = mensaje;
   mensajeError.value = "";
+}
+
+async function exportarAExcel() {
+  try {
+    if (operacionesFiltradas.value.length === 0) {
+      mensajeError.value = "No hay datos para exportar";
+      return;
+    }
+
+    const datosExcel = prepararDatosOperaciones(operacionesFiltradas.value);
+    const configuracionColumnas = obtenerConfiguracionColumnas("operaciones");
+
+    const resultado = exportarExcel(
+      datosExcel,
+      "operaciones_frio_despacho_reporte",
+      "Operaciones",
+      { anchoColumnas: configuracionColumnas }
+    );
+
+    mostrarMensajeExito(
+      `Reporte exportado exitosamente: ${resultado.nombreArchivo} (${resultado.registrosExportados} registros)`
+    );
+  } catch (error) {
+    console.error("Error al exportar a Excel:", error);
+    mensajeError.value = `Error al generar el reporte Excel: ${error.message}`;
+  }
 }
 
 // ============== WATCHERS ==============
@@ -901,6 +841,19 @@ onMounted(async () => {
   background: #f9fafb;
   border-color: #9ca3af;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.boton-excel {
+  background: linear-gradient(135deg, #059669 0%, #16a34a 100%);
+  color: white;
+  border: none;
+  box-shadow: 0 2px 8px rgba(5, 150, 105, 0.2);
+}
+
+.boton-excel:hover:not(:disabled) {
+  background: linear-gradient(135deg, #047857 0%, #15803d 100%);
+  box-shadow: 0 4px 16px rgba(5, 150, 105, 0.3);
+  transform: translateY(-1px);
 }
 
 .icono-boton {

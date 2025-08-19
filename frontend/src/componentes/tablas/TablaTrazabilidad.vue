@@ -337,8 +337,6 @@
 </template>
 
 <script setup>
-import { computed } from "vue";
-
 // Props
 const props = defineProps({
   movimientos: {
@@ -352,16 +350,12 @@ const props = defineProps({
   tieneActivosFiltros: {
     type: Boolean,
     default: false,
+    validator: (value) => typeof value === "boolean",
   },
 });
 
 // Emits
-const emit = defineEmits([
-  "ver-detalle",
-  "editar",
-  "imprimir",
-  "crear-movimiento",
-]);
+defineEmits(["ver-detalle", "editar", "imprimir", "crear-movimiento"]);
 
 // Métodos de formateo
 function formatearFecha(fecha) {
@@ -389,18 +383,10 @@ function formatearCantidad(cantidad) {
   });
 }
 
-function obtenerNombreUbicacion(ubicacion) {
-  if (!ubicacion) return "N/A";
-  if (typeof ubicacion === "string") return ubicacion;
-  return ubicacion.nombre || ubicacion.title || "N/A";
-}
-
-function obtenerBodegaOrigen(movimiento) {
-  return movimiento.bodega_origen || "N/A";
-}
-
-function obtenerBodegaDestino(movimiento) {
-  return movimiento.bodega_destino || "N/A";
+function puedeEditar(movimiento) {
+  // Lógica para determinar si el movimiento puede ser editado
+  // Por ejemplo, solo movimientos recientes o con cierto estado
+  return movimiento && movimiento.estado !== "completado";
 }
 
 function obtenerClaseTipo(tipoMovimiento) {
@@ -413,12 +399,6 @@ function obtenerClaseTipo(tipoMovimiento) {
     PRODUCCION: "produccion",
   };
   return mapaTipos[tipoMovimiento?.toUpperCase()] || "neutral";
-}
-
-function puedeEditar(movimiento) {
-  // Lógica para determinar si el movimiento puede ser editado
-  // Por ejemplo, solo movimientos recientes o con cierto estado
-  return true; // Por ahora permitir editar todos
 }
 
 function obtenerMensajeVacio() {

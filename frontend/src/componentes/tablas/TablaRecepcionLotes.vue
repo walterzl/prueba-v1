@@ -326,8 +326,6 @@
 </template>
 
 <script setup>
-import { computed } from "vue";
-
 // Props
 const props = defineProps({
   recepciones: {
@@ -341,11 +339,12 @@ const props = defineProps({
   tieneActivosFiltros: {
     type: Boolean,
     default: false,
+    validator: (value) => typeof value === "boolean",
   },
 });
 
 // Emits
-const emit = defineEmits([
+defineEmits([
   "ver-detalle",
   "editar",
   "confirmar",
@@ -379,12 +378,6 @@ function formatearCantidad(cantidad) {
   });
 }
 
-function truncarTexto(texto, longitud) {
-  if (!texto) return "N/A";
-  if (texto.length <= longitud) return texto;
-  return texto.substring(0, longitud) + "...";
-}
-
 function obtenerClaseCalidad(calidad) {
   const mapaCalidades = {
     EXCELENTE: "excelente",
@@ -394,38 +387,6 @@ function obtenerClaseCalidad(calidad) {
     RECHAZADA: "rechazada",
   };
   return mapaCalidades[calidad?.toUpperCase()] || "neutral";
-}
-
-function obtenerClaseEstado(estado) {
-  const mapaEstados = {
-    pendiente: "pendiente",
-    en_proceso: "proceso",
-    recibida: "recibida",
-    confirmada: "confirmada",
-    ubicada: "ubicada",
-    rechazada: "rechazada",
-  };
-  return mapaEstados[estado] || "neutral";
-}
-
-function obtenerTextoEstado(estado) {
-  const mapaTextos = {
-    pendiente: "Pendiente",
-    en_proceso: "En Proceso",
-    recibida: "Recibida",
-    confirmada: "Confirmada",
-    ubicada: "Ubicada",
-    rechazada: "Rechazada",
-  };
-  return mapaTextos[estado] || estado;
-}
-
-function puedeEditar(recepcion) {
-  return ["pendiente", "en_proceso", "recibida"].includes(recepcion.estado);
-}
-
-function puedeConfirmar(recepcion) {
-  return ["recibida"].includes(recepcion.estado);
 }
 
 function obtenerMensajeVacio() {

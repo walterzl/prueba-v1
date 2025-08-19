@@ -29,6 +29,17 @@
           <span class="icono-boton">🔄</span>
           Actualizar
         </button>
+        <button
+          type="button"
+          class="boton boton-excel"
+          @click="exportarAExcel"
+          :disabled="
+            cargandoDatos || inventarioFiltrado.length === 0 || exportando
+          "
+        >
+          <span class="icono-boton">📊</span>
+          {{ exportando ? "Exportando..." : "Excel" }}
+        </button>
       </div>
     </div>
 
@@ -54,14 +65,13 @@
     <!-- Filtros de búsqueda -->
     <div class="seccion-filtros">
       <div class="contenedor-filtros">
-        <div class="filtros-fila">
+        <div class="filtros-fila-principal">
           <CampoEntrada
             v-model="filtros.busqueda"
             etiqueta="Buscar material"
-            placeholder="Código o nombre del material..."
+            placeholder="Código, nombre del material o lote..."
             tipo="search"
             :mostrar-etiqueta="false"
-            @cambio="aplicarFiltros"
           />
 
           <CampoEntrada
@@ -70,7 +80,6 @@
             tipo="select"
             :opciones="plantasDisponibles"
             :mostrar-etiqueta="false"
-            @cambio="aplicarFiltros"
           />
 
           <CampoEntrada
@@ -79,8 +88,53 @@
             tipo="select"
             :opciones="bodegasDisponibles"
             :mostrar-etiqueta="false"
-            @cambio="aplicarFiltros"
           />
+        </div>
+
+        <div class="filtros-fila-secundaria">
+          <CampoEntrada
+            v-model="filtros.ubicacion"
+            etiqueta="Ubicación"
+            tipo="select"
+            :opciones="ubicacionesDisponibles"
+            :mostrar-etiqueta="false"
+          />
+
+          <CampoEntrada
+            v-model="filtros.lote"
+            etiqueta="Lote"
+            placeholder="Buscar por lote..."
+            tipo="text"
+          />
+
+          <CampoEntrada
+            v-model="filtros.condicionArmado"
+            etiqueta="Condición Armado"
+            tipo="select"
+            :opciones="condicionesArmadoDisponibles"
+            :mostrar-etiqueta="false"
+          />
+
+          <CampoEntrada
+            v-model="filtros.stockMinimo"
+            etiqueta="Stock mínimo"
+            placeholder="Stock mayor a..."
+            tipo="number"
+            minimo="0"
+            paso="0.01"
+          />
+        </div>
+
+        <div class="filtros-fila-tercera">
+          <button
+            type="button"
+            class="boton boton-secundario boton-limpiar"
+            @click="limpiarFiltros"
+            title="Limpiar filtros"
+          >
+            <span class="icono-boton">🗑️</span>
+            Limpiar
+          </button>
         </div>
       </div>
     </div>
@@ -272,7 +326,7 @@
       <TablaInventario
         :inventario="inventarioFiltrado"
         :cargando="cargandoDatos"
-        :tiene-activos-filtros="Boolean(filtros.busqueda)"
+        :tiene-activos-filtros="Boolean(tieneActivosFiltros)"
         @contar="realizarConteo"
         @ajustar-stock="ajustarStock"
         @ver-historial="verHistorialInventario"
@@ -287,6 +341,7 @@
 import { ref, computed, onMounted, watch } from "vue";
 import { usarFormulario } from "@/composables/usarFormulario";
 import { usarPaginacion } from "@/composables/usarPaginacion";
+import { usarExportacionExcel } from "@/composables/usarExportacionExcel";
 import { servicioInventario } from "@/servicios/servicioInventario";
 import { servicioMantenedores } from "@/servicios/servicioMantenedores";
 import CampoEntrada from "@/componentes/CampoEntrada.vue";
@@ -298,19 +353,12 @@ import {
   MENSAJES,
   obtenerOpcionesSelect,
 } from "@/utilidades/constantes";
-import {
-  fechaActualParaInput,
-  formatearFecha,
-  formatearNumero,
-  filtrarPorTexto,
-  ordenarPor,
-} from "@/utilidades/auxiliares";
+import { fechaActualParaInput } from "@/utilidades/auxiliares";
 
 // ============== ESTADO REACTIVO ==============
 
 // Estado de datos
 const inventario = ref([]);
-const materiales = ref([]);
 const ubicaciones = ref([]);
 const inventarioFiltrado = ref([]);
 
@@ -322,10 +370,15 @@ const mensajeExito = ref("");
 const mensajeError = ref("");
 
 // Filtros
+// Filtros basados en campos reales de la API de inventario
 const filtros = ref({
-  busqueda: "",
-  planta: "Rancagua", // Valor por defecto
-  bodega: "",
+  busqueda: "", // Busca en codigo_material, nombre_material, lote
+  planta: "Rancagua", // Campo real: planta
+  bodega: "", // Campo real: bodega
+  ubicacion: "", // Campo real: ubicacion
+  lote: "", // Campo real: lote
+  condicionArmado: "", // Campo real: condicion_armado
+  stockMinimo: "", // Filtro para stock > valor
 });
 
 // Paginación
@@ -333,6 +386,14 @@ const paginacion = usarPaginacion({
   elementosPorPagina: 50,
   paginaActual: 1,
 });
+
+// Exportación Excel
+const {
+  exportando,
+  exportarAExcel: exportarExcel,
+  prepararDatosInventario,
+  obtenerConfiguracionColumnas,
+} = usarExportacionExcel();
 
 // Formulario de inventario
 const formulario = usarFormulario({
@@ -377,6 +438,30 @@ const bodegasDisponibles = computed(() => {
   }));
 });
 
+const ubicacionesDisponibles = computed(() => {
+  const ubicacionesUnicas = [
+    ...new Set(
+      inventario.value
+        .filter(
+          (item) =>
+            item.planta === filtros.value.planta &&
+            (!filtros.value.bodega || item.bodega === filtros.value.bodega)
+        )
+        .map((item) => item.ubicacion)
+        .filter(Boolean)
+    ),
+  ];
+
+  return ubicacionesUnicas.map((ubicacion) => ({
+    value: ubicacion,
+    label: ubicacion,
+  }));
+});
+
+const condicionesArmadoDisponibles = computed(() =>
+  obtenerOpcionesSelect(CONDICIONES_ARMADO)
+);
+
 const ubicacionesFiltradas = computed(() => {
   return ubicaciones.value
     .filter(
@@ -392,67 +477,18 @@ const ubicacionesFiltradas = computed(() => {
 
 const fechaActual = computed(() => fechaActualParaInput());
 
-const columnasTabla = computed(() => [
-  {
-    clave: "title",
-    titulo: "Código",
-    ordenable: true,
-    ancho: "120px",
-  },
-  {
-    clave: "nombre_material",
-    titulo: "Material",
-    ordenable: true,
-    ancho: "250px",
-  },
-  {
-    clave: "stock",
-    titulo: "Stock",
-    ordenable: true,
-    formato: (valor) => formatearNumero(valor, 2),
-    alineacion: "derecha",
-    ancho: "100px",
-  },
-  {
-    clave: "pallets",
-    titulo: "Pallets",
-    ordenable: true,
-    formato: (valor) => formatearNumero(valor, 0),
-    alineacion: "derecha",
-    ancho: "80px",
-  },
-  {
-    clave: "bodega",
-    titulo: "Bodega",
-    ordenable: true,
-    ancho: "150px",
-  },
-  {
-    clave: "ubicacion",
-    titulo: "Ubicación",
-    ordenable: true,
-    ancho: "150px",
-  },
-  {
-    clave: "lote",
-    titulo: "Lote",
-    ordenable: true,
-    ancho: "120px",
-  },
-  {
-    clave: "fecha_inventario",
-    titulo: "Fecha",
-    ordenable: true,
-    formato: (valor) => formatearFecha(valor),
-    ancho: "110px",
-  },
-  {
-    clave: "contado_por",
-    titulo: "Contado por",
-    ordenable: true,
-    ancho: "150px",
-  },
-]);
+const tieneActivosFiltros = computed(() => {
+  const filtrosActivos = [
+    filtros.value.busqueda,
+    filtros.value.bodega,
+    filtros.value.ubicacion,
+    filtros.value.lote,
+    filtros.value.condicionArmado,
+    filtros.value.stockMinimo,
+  ].filter((filtro) => filtro && filtro.toString().trim() !== "");
+
+  return filtrosActivos.length > 0;
+});
 
 // ============== MÉTODOS ==============
 
@@ -547,19 +583,49 @@ async function cargarUbicacionesPorBodega() {
 function aplicarFiltros() {
   let datos = [...inventario.value];
 
-  // Aplicar filtro de búsqueda
+  // Aplicar filtro de búsqueda (campos reales)
   if (filtros.value.busqueda) {
-    datos = filtrarPorTexto(datos, filtros.value.busqueda, [
-      "codigo_material",
-      "nombre_material",
-      "lote",
-      "contado_por",
-    ]);
+    const busqueda = filtros.value.busqueda.toLowerCase();
+    datos = datos.filter((item) => {
+      return (
+        item.codigo_material?.toLowerCase().includes(busqueda) ||
+        item.nombre_material?.toLowerCase().includes(busqueda) ||
+        item.lote?.toLowerCase().includes(busqueda) ||
+        item.contado_por?.toLowerCase().includes(busqueda)
+      );
+    });
   }
 
-  // Aplicar filtro de bodega
+  // Aplicar filtro de bodega (campo real)
   if (filtros.value.bodega) {
     datos = datos.filter((item) => item.bodega === filtros.value.bodega);
+  }
+
+  // Aplicar filtro de ubicación (campo real)
+  if (filtros.value.ubicacion) {
+    datos = datos.filter((item) => item.ubicacion === filtros.value.ubicacion);
+  }
+
+  // Aplicar filtro de lote (campo real)
+  if (filtros.value.lote) {
+    const lote = filtros.value.lote.toLowerCase();
+    datos = datos.filter((item) => item.lote?.toLowerCase().includes(lote));
+  }
+
+  // Aplicar filtro de condición de armado (campo real)
+  if (filtros.value.condicionArmado) {
+    datos = datos.filter(
+      (item) => item.condicion_armado === filtros.value.condicionArmado
+    );
+  }
+
+  // Aplicar filtro de stock mínimo (campo real)
+  if (
+    filtros.value.stockMinimo &&
+    !isNaN(parseFloat(filtros.value.stockMinimo))
+  ) {
+    const stockMin = parseFloat(filtros.value.stockMinimo);
+    datos = datos.filter((item) => parseFloat(item.stock) >= stockMin);
   }
 
   inventarioFiltrado.value = datos;
@@ -567,12 +633,17 @@ function aplicarFiltros() {
   paginacion.paginaActual.value = 1; // Resetear a primera página
 }
 
-function manejarOrdenamiento({ campo, direccion }) {
-  inventarioFiltrado.value = ordenarPor(
-    inventarioFiltrado.value,
-    campo,
-    direccion
-  );
+function limpiarFiltros() {
+  filtros.value = {
+    busqueda: "",
+    planta: filtros.value.planta, // Mantener la planta seleccionada
+    bodega: "",
+    ubicacion: "",
+    lote: "",
+    condicionArmado: "",
+    stockMinimo: "",
+  };
+  aplicarFiltros();
 }
 
 async function guardarInventario() {
@@ -599,6 +670,32 @@ function cerrarFormulario() {
 function mostrarMensajeExito(mensaje) {
   mensajeExito.value = mensaje;
   mensajeError.value = "";
+}
+
+async function exportarAExcel() {
+  try {
+    if (inventarioFiltrado.value.length === 0) {
+      mensajeError.value = "No hay datos para exportar";
+      return;
+    }
+
+    const datosExcel = prepararDatosInventario(inventarioFiltrado.value);
+    const configuracionColumnas = obtenerConfiguracionColumnas("inventario");
+
+    const resultado = exportarExcel(
+      datosExcel,
+      "inventario_reporte",
+      "Inventario",
+      { anchoColumnas: configuracionColumnas }
+    );
+
+    mostrarMensajeExito(
+      `Reporte exportado exitosamente: ${resultado.nombreArchivo} (${resultado.registrosExportados} registros)`
+    );
+  } catch (error) {
+    console.error("Error al exportar a Excel:", error);
+    mensajeError.value = `Error al generar el reporte Excel: ${error.message}`;
+  }
 }
 
 // Métodos específicos para la tabla de inventario
@@ -641,7 +738,14 @@ watch(
 );
 
 watch(
-  () => [filtros.value.busqueda, filtros.value.bodega],
+  () => [
+    filtros.value.busqueda,
+    filtros.value.bodega,
+    filtros.value.ubicacion,
+    filtros.value.lote,
+    filtros.value.condicionArmado,
+    filtros.value.stockMinimo,
+  ],
   () => {
     aplicarFiltros();
   }
@@ -746,6 +850,19 @@ onMounted(async () => {
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }
 
+.boton-excel {
+  background: linear-gradient(135deg, #059669 0%, #16a34a 100%);
+  color: white;
+  border: none;
+  box-shadow: 0 2px 8px rgba(5, 150, 105, 0.2);
+}
+
+.boton-excel:hover:not(:disabled) {
+  background: linear-gradient(135deg, #047857 0%, #15803d 100%);
+  box-shadow: 0 4px 16px rgba(5, 150, 105, 0.3);
+  transform: translateY(-1px);
+}
+
 .icono-boton {
   font-size: 1rem;
   line-height: 1;
@@ -765,11 +882,29 @@ onMounted(async () => {
   max-width: 100%;
 }
 
-.filtros-fila {
+.filtros-fila-principal {
   display: grid;
   grid-template-columns: 1fr auto auto;
   gap: 1rem;
   align-items: end;
+  margin-bottom: 1rem;
+}
+
+.filtros-fila-secundaria {
+  display: grid;
+  grid-template-columns: auto auto auto auto;
+  gap: 1rem;
+  align-items: end;
+  margin-bottom: 1rem;
+}
+
+.filtros-fila-tercera {
+  display: flex;
+  justify-content: flex-end;
+  gap: 1rem;
+  align-items: end;
+  padding-top: 1rem;
+  border-top: 1px solid #f1f5f9;
 }
 
 /* Formulario */
@@ -968,8 +1103,13 @@ onMounted(async () => {
     font-size: 1.75rem;
   }
 
-  .filtros-fila {
+  .filtros-fila-principal,
+  .filtros-fila-secundaria {
     grid-template-columns: 1fr;
+  }
+
+  .filtros-fila-tercera {
+    justify-content: center;
   }
 
   .fila-campos {

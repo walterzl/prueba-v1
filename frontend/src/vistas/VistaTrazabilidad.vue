@@ -40,6 +40,17 @@
           <span class="icono-boton">📊</span>
           Exportar
         </button>
+        <button
+          type="button"
+          class="boton boton-excel"
+          @click="exportarAExcel"
+          :disabled="
+            cargandoDatos || trazabilidadFiltrada.length === 0 || exportando
+          "
+        >
+          <span class="icono-boton">📊</span>
+          {{ exportando ? "Exportando..." : "Excel" }}
+        </button>
       </div>
     </div>
 
@@ -326,7 +337,7 @@
       <TablaTrazabilidad
         :movimientos="trazabilidadFiltrada"
         :cargando="cargandoDatos"
-        :tiene-activos-filtros="tieneActivosFiltros"
+        :tiene-activos-filtros="Boolean(tieneActivosFiltros)"
         @ver-detalle="verDetalleMovimiento"
         @editar="editarMovimiento"
         @imprimir="imprimirEtiqueta"
@@ -340,6 +351,7 @@
 import { ref, computed, onMounted, watch } from "vue";
 import { usarFormulario } from "@/composables/usarFormulario";
 import { usarPaginacion } from "@/composables/usarPaginacion";
+import { usarExportacionExcel } from "@/composables/usarExportacionExcel";
 import { servicioTrazabilidad } from "@/servicios/servicioTrazabilidad";
 import { servicioMantenedores } from "@/servicios/servicioMantenedores";
 import CampoEntrada from "@/componentes/CampoEntrada.vue";
@@ -355,11 +367,7 @@ import {
 import {
   fechaActualParaInput,
   fechaHoraActualParaInput,
-  formatearFecha,
-  formatearHora,
-  formatearNumero,
   filtrarPorTexto,
-  ordenarPor,
   filtrarPorRangoFechas,
 } from "@/utilidades/auxiliares";
 
@@ -367,7 +375,6 @@ import {
 
 // Estado de datos
 const trazabilidad = ref([]);
-const materiales = ref([]);
 const ubicaciones = ref([]);
 const trazabilidadFiltrada = ref([]);
 
@@ -391,6 +398,14 @@ const paginacion = usarPaginacion({
   elementosPorPagina: 50,
   paginaActual: 1,
 });
+
+// Exportación Excel
+const {
+  exportando,
+  exportarAExcel: exportarExcel,
+  prepararDatosTrazabilidad,
+  obtenerConfiguracionColumnas,
+} = usarExportacionExcel();
 
 // Formulario de movimiento
 const formulario = usarFormulario({
@@ -435,15 +450,18 @@ const fechaActual = computed(() => fechaActualParaInput());
 const fechaHoraActual = computed(() => fechaHoraActualParaInput());
 
 const tieneActivosFiltros = computed(() => {
-  return (
-    filtros.value.busqueda ||
-    filtros.value.tipoMovimiento ||
-    filtros.value.fechaDesde ||
-    filtros.value.fechaHasta
-  );
+  const filtrosActivos = [
+    filtros.value.busqueda,
+    filtros.value.tipoMovimiento,
+    filtros.value.fechaDesde,
+    filtros.value.fechaHasta,
+  ].filter((filtro) => filtro && filtro.toString().trim() !== "");
+
+  return filtrosActivos.length > 0;
 });
 
-const columnasTabla = computed(() => [
+// columnasTabla eliminada por ESLint cleanup
+/*const columnasTabla = computed(() => [
   {
     clave: "id",
     titulo: "ID",
@@ -598,7 +616,7 @@ const columnasTabla = computed(() => [
     ancho: "140px",
     tipo: "fechaHora",
   },
-]);
+]);*/
 
 // ============== MÉTODOS ==============
 
@@ -700,32 +718,6 @@ function aplicarFiltros() {
   paginacion.paginaActual.value = 1; // Resetear a primera página
 }
 
-function manejarOrdenamiento({ campo, direccion }) {
-  trazabilidadFiltrada.value = ordenarPor(
-    trazabilidadFiltrada.value,
-    campo,
-    direccion
-  );
-}
-
-function obtenerClaseTipoMovimiento(tipo) {
-  const tiposIngreso = ["INGRESO", "RECEPCION_INTERNA", "INGRESO_PROVEEDOR"];
-  const tiposSalida = ["DESPACHO", "CONSUMO", "SALIDA"];
-  const tiposMovimiento = ["TRASLADO", "TRANSFERENCIA"];
-
-  if (tiposIngreso.includes(tipo)) return "ingreso";
-  if (tiposSalida.includes(tipo)) return "salida";
-  if (tiposMovimiento.includes(tipo)) return "movimiento";
-  return "neutral";
-}
-
-function obtenerMensajeVacio() {
-  if (tieneActivosFiltros.value) {
-    return "No se encontraron movimientos que coincidan con los filtros aplicados.";
-  }
-  return "Comience registrando el primer movimiento de material.";
-}
-
 function limpiarFiltros() {
   filtros.value = {
     busqueda: "",
@@ -741,7 +733,7 @@ async function exportarDatos() {
   try {
     // TODO: Implementar exportación
     mostrarMensajeExito("Funcionalidad de exportación en desarrollo");
-  } catch (error) {
+  } catch {
     mensajeError.value = "Error al exportar datos";
   }
 }
@@ -770,6 +762,54 @@ function cerrarFormulario() {
 function mostrarMensajeExito(mensaje) {
   mensajeExito.value = mensaje;
   mensajeError.value = "";
+}
+
+async function exportarAExcel() {
+  try {
+    if (trazabilidadFiltrada.value.length === 0) {
+      mensajeError.value = "No hay datos para exportar";
+      return;
+    }
+
+    const datosExcel = prepararDatosTrazabilidad(trazabilidadFiltrada.value);
+    const configuracionColumnas = obtenerConfiguracionColumnas("trazabilidad");
+
+    const resultado = exportarExcel(
+      datosExcel,
+      "trazabilidad_reporte",
+      "Trazabilidad",
+      { anchoColumnas: configuracionColumnas }
+    );
+
+    mostrarMensajeExito(
+      `Reporte exportado exitosamente: ${resultado.nombreArchivo} (${resultado.registrosExportados} registros)`
+    );
+  } catch (error) {
+    console.error("Error al exportar a Excel:", error);
+    mensajeError.value = `Error al generar el reporte Excel: ${error.message}`;
+  }
+}
+
+// Métodos específicos para la tabla de trazabilidad
+function verDetalleMovimiento(movimiento) {
+  // TODO: Implementar modal de detalle de movimiento
+  mostrarMensajeExito(
+    `Detalle del movimiento ${movimiento.id_movimiento} (funcionalidad en desarrollo)`
+  );
+}
+
+function editarMovimiento(movimiento) {
+  // TODO: Implementar edición de movimiento
+  mostrarMensajeExito(
+    `Edición del movimiento ${movimiento.id_movimiento} (funcionalidad en desarrollo)`
+  );
+}
+
+function imprimirEtiqueta(movimiento) {
+  // TODO: Implementar impresión de etiquetas
+  mostrarMensajeExito(
+    `Impresión de etiqueta para ${movimiento.id_movimiento} (funcionalidad en desarrollo)`
+  );
 }
 
 // ============== WATCHERS ==============
@@ -891,6 +931,19 @@ onMounted(async () => {
   background: #f9fafb;
   border-color: #9ca3af;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.boton-excel {
+  background: linear-gradient(135deg, #059669 0%, #16a34a 100%);
+  color: white;
+  border: none;
+  box-shadow: 0 2px 8px rgba(5, 150, 105, 0.2);
+}
+
+.boton-excel:hover:not(:disabled) {
+  background: linear-gradient(135deg, #047857 0%, #15803d 100%);
+  box-shadow: 0 4px 16px rgba(5, 150, 105, 0.3);
+  transform: translateY(-1px);
 }
 
 .icono-boton {

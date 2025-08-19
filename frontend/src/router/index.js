@@ -1,8 +1,6 @@
 import { createRouter, createWebHistory } from "vue-router";
 import { usarAlmacenAutenticacion } from "@/almacen/almacenAuthSimple";
-import VistaLogin from "../vistas/VistaLogin.vue";
 import VistaLoginSimple from "../vistas/VistaLoginSimple.vue";
-import VistaInicio from "../vistas/VistaInicio.vue";
 import VistaInicioSimple from "../vistas/VistaInicioSimple.vue";
 import VistaInventario from "../vistas/VistaInventario.vue";
 import VistaTrazabilidad from "../vistas/VistaTrazabilidad.vue";

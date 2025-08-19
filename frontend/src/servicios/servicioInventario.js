@@ -2,32 +2,48 @@ import clienteApi from "./api";
 
 export const servicioInventario = {
   /**
-   * Obtiene el inventario con filtros y paginación.
-   * @param {object} params - Objeto con parámetros de filtro y paginación.
-   * @returns {Promise<Array>} - Devuelve un array de registros de inventario.
+   * Obtiene la lista de inventario con filtros opcionales
+   * @param {Object} parametros - Parámetros de consulta
+   * @param {string} parametros.planta - Planta a filtrar
+   * @param {string} parametros.busqueda - Texto de búsqueda
+   * @param {number} parametros.limite - Cantidad máxima de registros
+   * @returns {Promise<Array>} Lista de registros de inventario
    */
-  async obtenerInventario(params = {}) {
+  async obtenerInventario(parametros = {}) {
     try {
-      const queryString = new URLSearchParams(params).toString();
-      const respuesta = await clienteApi(`/inventario?${queryString}`);
+      const datosConsulta = new URLSearchParams(parametros).toString();
+      const respuesta = await clienteApi(`/inventario?${datosConsulta}`);
 
-      console.log("Respuesta completa del inventario:", respuesta);
-
-      // Extraer los datos según la nueva estructura de la API
-      if (respuesta?.exito && respuesta?.datos?.inventario) {
-        return respuesta.datos.inventario;
-      }
-
-      // Fallback para otros formatos
-      if (respuesta?.datos && Array.isArray(respuesta.datos)) {
-        return respuesta.datos;
-      }
-
-      return Array.isArray(respuesta) ? respuesta : [];
+      // Simplificar extracción de datos
+      return this.extraerDatosInventario(respuesta);
     } catch (error) {
       console.error("Error al obtener inventario:", error);
-      return [];
+      throw new Error("No se pudo cargar el inventario");
     }
+  },
+
+  /**
+   * Extrae los datos de inventario de la respuesta de la API
+   * @param {Object} respuesta - Respuesta de la API
+   * @returns {Array} Lista de inventario normalizada
+   */
+  extraerDatosInventario(respuesta) {
+    // Estructura principal de la API
+    if (respuesta?.exito && respuesta?.datos?.inventario) {
+      return respuesta.datos.inventario;
+    }
+
+    // Estructura alternativa
+    if (respuesta?.datos && Array.isArray(respuesta.datos)) {
+      return respuesta.datos;
+    }
+
+    // Respuesta directa como array
+    if (Array.isArray(respuesta)) {
+      return respuesta;
+    }
+
+    return [];
   },
 
   /**
@@ -40,21 +56,43 @@ export const servicioInventario = {
   },
 
   /**
-   * Registra un nuevo elemento de inventario
-   * @param {Object} datosInventario - Datos del nuevo inventario
-   * @param {string} datosInventario.planta - Planta donde se encuentra el inventario
-   * @param {string} datosInventario.codigo_material - Código del material
-   * @param {string} datosInventario.ubicacion - Ubicación del material
-   * @param {string} datosInventario.lote - Lote del material
-   * @param {number} datosInventario.stock - Cantidad en stock
-   * @param {string} datosInventario.unidad_medida - Unidad de medida
-   * @returns {Promise<Object>} - Registro de inventario creado
+   * Crea un nuevo registro de inventario
+   * @param {Object} datosInventario - Información del inventario a crear
+   * @returns {Promise<Object>} Registro de inventario creado
    */
-  async crearInventario(datosInventario) {
-    return clienteApi("/inventario", {
-      method: "POST",
-      body: JSON.stringify(datosInventario),
-    });
+  async crearRegistroInventario(datosInventario) {
+    try {
+      const datosNormalizados = this.normalizarDatosInventario(datosInventario);
+      const respuesta = await clienteApi("/inventario", {
+        method: "POST",
+        body: JSON.stringify(datosNormalizados),
+      });
+
+      return respuesta?.datos || respuesta;
+    } catch (error) {
+      console.error("Error al crear inventario:", error);
+      throw new Error("No se pudo crear el registro de inventario");
+    }
+  },
+
+  /**
+   * Normaliza los datos de inventario antes de enviarlos a la API
+   * @param {Object} datos - Datos originales del formulario
+   * @returns {Object} Datos normalizados para la API
+   */
+  normalizarDatosInventario(datos) {
+    return {
+      planta: datos.planta || "Rancagua",
+      codigo_material: datos.title || datos.codigo_material,
+      ubicacion: datos.ubicacion,
+      lote: datos.lote,
+      stock: parseFloat(datos.stock) || 0,
+      pallets: parseInt(datos.pallets) || 0,
+      bodega: datos.bodega,
+      fecha_inventario: datos.fecha_inventario,
+      condicion_armado: datos.condicion_armado,
+      contado_por: datos.contado_por,
+    };
   },
 
   /**

@@ -257,8 +257,6 @@
 </template>
 
 <script setup>
-import { computed } from "vue";
-
 // Props
 const props = defineProps({
   inventario: {
@@ -272,11 +270,12 @@ const props = defineProps({
   tieneActivosFiltros: {
     type: Boolean,
     default: false,
+    validator: (value) => typeof value === "boolean",
   },
 });
 
 // Emits
-const emit = defineEmits([
+defineEmits([
   "contar",
   "ajustar-stock",
   "ver-historial",
@@ -322,11 +321,11 @@ function obtenerClasePlanta(planta) {
   return mapasPlantas[plantaNormalizada] || "default";
 }
 
-function puedeContar(item) {
+function puedeContar() {
   return true; // Siempre permitir contar por ahora
 }
 
-function puedeAjustar(item) {
+function puedeAjustar() {
   return true; // Siempre permitir ajustar por ahora
 }
 
