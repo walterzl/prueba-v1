@@ -308,6 +308,118 @@ export const servicioMantenedores = {
     }
   },
 
+  // ============== TIPOS DE TARJA ==============
+  /**
+   * Obtiene todos los tipos de tarja disponibles
+   */
+  async obtenerTiposTarja() {
+    return obtenerConCache("mantenedores_tipos_tarja", async () => {
+      try {
+        const respuesta = await clienteApi("/mantenedores/tipos-tarja");
+        return respuesta?.datos || respuesta || [];
+      } catch (error) {
+        console.error("Error al obtener tipos de tarja:", error);
+        return [];
+      }
+    });
+  },
+
+  // ============== TIPOS DE OPERACIÓN ==============
+  /**
+   * Obtiene todos los tipos de operación disponibles
+   */
+  async obtenerTiposOperacion() {
+    return obtenerConCache("mantenedores_tipos_operacion", async () => {
+      try {
+        const respuesta = await clienteApi("/mantenedores/tipos-operacion");
+        return respuesta?.datos || respuesta || [];
+      } catch (error) {
+        console.error("Error al obtener tipos de operación:", error);
+        return [];
+      }
+    });
+  },
+
+  // ============== TURNOS ==============
+  /**
+   * Obtiene todos los turnos disponibles
+   */
+  async obtenerTurnos() {
+    return obtenerConCache("mantenedores_turnos", async () => {
+      try {
+        const respuesta = await clienteApi("/mantenedores/turnos");
+        return respuesta?.datos || respuesta || [];
+      } catch (error) {
+        console.error("Error al obtener turnos:", error);
+        return [];
+      }
+    });
+  },
+
+  // ============== BODEGAS ==============
+  /**
+   * Obtiene todas las bodegas disponibles
+   */
+  async obtenerBodegas() {
+    return obtenerConCache("mantenedores_bodegas", async () => {
+      try {
+        const respuesta = await clienteApi("/mantenedores/bodegas");
+        return respuesta?.datos || respuesta || [];
+      } catch (error) {
+        console.error("Error al obtener bodegas:", error);
+        return [];
+      }
+    });
+  },
+
+  // ============== ESTADOS DE TARJA ==============
+  /**
+   * Obtiene todos los estados de tarja disponibles
+   */
+  async obtenerEstadosTarja() {
+    return obtenerConCache("mantenedores_estados_tarja", async () => {
+      try {
+        const respuesta = await clienteApi("/mantenedores/estados-tarja");
+        return respuesta?.datos || respuesta || [];
+      } catch (error) {
+        console.error("Error al obtener estados de tarja:", error);
+        return [];
+      }
+    });
+  },
+
+  // ============== CERTIFICACIONES CAA ==============
+  /**
+   * Obtiene certificaciones CAA predefinidas
+   */
+  async obtenerCertificacionesCAA() {
+    return obtenerConCache("mantenedores_certificaciones_caa", async () => {
+      try {
+        const respuesta = await clienteApi("/mantenedores/certificaciones-caa");
+        return respuesta?.datos || respuesta || [];
+      } catch (error) {
+        console.error("Error al obtener certificaciones CAA:", error);
+        return [];
+      }
+    });
+  },
+
+  // ============== PRIORIDADES ==============
+  /**
+   * Obtiene prioridades predefinidas
+   */
+  async obtenerPrioridades() {
+    return obtenerConCache("mantenedores_prioridades", async () => {
+      try {
+        const respuesta = await clienteApi("/mantenedores/prioridades");
+        return respuesta?.datos || respuesta || [];
+      } catch (error) {
+        console.error("Error al obtener prioridades:", error);
+        return [];
+      }
+    });
+  },
+
   // ============== MÉTODOS DE VALIDACIÓN PRIVADOS ==============
   /**
    * Valida los datos de un material antes de enviarlo al servidor

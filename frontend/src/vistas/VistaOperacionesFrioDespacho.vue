@@ -74,73 +74,168 @@
     />
 
     <!-- Filtros de búsqueda -->
-    <div class="seccion-filtros">
+    <div class="seccion-filtros vista-operaciones-frio">
       <div class="contenedor-filtros">
+        <!-- Fila Principal: Búsqueda + Planta + Tipo Operación -->
         <div class="filtros-fila-principal">
-          <CampoEntrada
-            v-model="filtros.busqueda"
-            etiqueta="Buscar"
-            placeholder="Número de operación, material, cliente..."
-            tipo="search"
-            :mostrar-etiqueta="false"
-            @cambio="aplicarFiltros"
-          />
+          <div class="campo-busqueda-principal">
+            <CampoEntrada
+              v-model="filtros.busqueda"
+              etiqueta="Búsqueda General"
+              placeholder="Número de operación, material, cliente..."
+              tipo="search"
+              :mostrar-etiqueta="true"
+              @cambio="aplicarFiltros"
+            />
+          </div>
 
-          <CampoEntrada
-            v-model="filtros.planta"
-            etiqueta="Planta"
-            tipo="select"
-            :opciones="plantasDisponibles"
-            :mostrar-etiqueta="false"
-            @cambio="aplicarFiltros"
-          />
+          <div class="campo-select">
+            <CampoEntrada
+              v-model="filtros.planta"
+              etiqueta="Planta"
+              tipo="select"
+              :opciones="plantasDisponibles"
+              :mostrar-etiqueta="true"
+              @cambio="aplicarFiltros"
+            />
+          </div>
 
-          <CampoEntrada
-            v-model="filtros.tipoOperacion"
-            etiqueta="Tipo de Operación"
-            tipo="select"
-            :opciones="tiposOperacionDisponibles"
-            :mostrar-etiqueta="false"
-            @cambio="aplicarFiltros"
-          />
+          <div class="campo-select">
+            <CampoEntrada
+              v-model="filtros.tipoOperacion"
+              etiqueta="Tipo de Operación"
+              tipo="select"
+              :opciones="tiposOperacionDisponibles"
+              :mostrar-etiqueta="true"
+              @cambio="aplicarFiltros"
+            />
+          </div>
         </div>
 
+        <!-- Fila Secundaria: Fechas + Estado -->
         <div class="filtros-fila-secundaria">
-          <CampoEntrada
-            v-model="filtros.fechaDesde"
-            etiqueta="Desde"
-            tipo="date"
-            :maximo="filtros.fechaHasta || fechaActual"
-            @cambio="aplicarFiltros"
-          />
+          <div class="campo-fecha">
+            <CampoEntrada
+              v-model="filtros.fechaDesde"
+              etiqueta="Fecha Desde"
+              tipo="date"
+              :maximo="filtros.fechaHasta || fechaActual"
+              :mostrar-etiqueta="true"
+              @cambio="aplicarFiltros"
+            />
+          </div>
 
-          <CampoEntrada
-            v-model="filtros.fechaHasta"
-            etiqueta="Hasta"
-            tipo="date"
-            :minimo="filtros.fechaDesde"
-            :maximo="fechaActual"
-            @cambio="aplicarFiltros"
-          />
+          <div class="campo-fecha">
+            <CampoEntrada
+              v-model="filtros.fechaHasta"
+              etiqueta="Fecha Hasta"
+              tipo="date"
+              :minimo="filtros.fechaDesde"
+              :maximo="fechaActual"
+              :mostrar-etiqueta="true"
+              @cambio="aplicarFiltros"
+            />
+          </div>
 
-          <CampoEntrada
-            v-model="filtros.estado"
-            etiqueta="Estado"
-            tipo="select"
-            :opciones="estadosDisponibles"
-            :mostrar-etiqueta="false"
-            @cambio="aplicarFiltros"
-          />
+          <div class="campo-select">
+            <CampoEntrada
+              v-model="filtros.estado"
+              etiqueta="Estado"
+              tipo="select"
+              :opciones="estadosDisponibles"
+              :mostrar-etiqueta="true"
+              @cambio="aplicarFiltros"
+            />
+          </div>
+        </div>
 
-          <button
-            type="button"
-            class="boton boton-secundario boton-limpiar"
-            @click="limpiarFiltros"
-            title="Limpiar filtros"
-          >
-            <span class="icono-boton">🗑️</span>
-            Limpiar
-          </button>
+        <!-- Fila Avanzada: Filtros adicionales específicos -->
+        <div class="filtros-fila-avanzada">
+          <div class="campo-select">
+            <CampoEntrada
+              v-model="filtros.turno"
+              etiqueta="Turno"
+              tipo="select"
+              :opciones="turnosRealesDisponibles"
+              @cambio="aplicarFiltros"
+            />
+          </div>
+
+          <div class="campo-texto">
+            <CampoEntrada
+              v-model="filtros.lote"
+              etiqueta="Lote"
+              placeholder="Filtrar por lote..."
+              @cambio="aplicarFiltros"
+            />
+          </div>
+
+          <div class="campo-select">
+            <CampoEntrada
+              v-model="filtros.material"
+              etiqueta="Material"
+              tipo="select"
+              :opciones="materialesDisponibles"
+              @cambio="aplicarFiltros"
+            />
+          </div>
+
+          <div class="campo-texto">
+            <CampoEntrada
+              v-model="filtros.numeroEmbarque"
+              etiqueta="Nº Embarque"
+              placeholder="Filtrar por número de embarque..."
+              @cambio="aplicarFiltros"
+            />
+          </div>
+
+          <div class="campo-texto">
+            <CampoEntrada
+              v-model="filtros.patenteCamion"
+              etiqueta="Patente Camión"
+              placeholder="Filtrar por patente..."
+              @cambio="aplicarFiltros"
+            />
+          </div>
+
+          <div class="campo-select">
+            <CampoEntrada
+              v-model="filtros.ubicacionOrigen"
+              etiqueta="Ubicación Origen"
+              tipo="select"
+              :opciones="ubicacionesOrigenDisponibles"
+              @cambio="aplicarFiltros"
+            />
+          </div>
+        </div>
+
+        <!-- Fila de Acciones -->
+        <div class="filtros-fila-acciones">
+          <div class="indicadores-filtros">
+            <span
+              v-if="filtrosActivosOperaciones > 0"
+              class="filtros-activos-badge"
+            >
+              <span class="icono">🔍</span>
+              {{ filtrosActivosOperaciones }} filtro{{
+                filtrosActivosOperaciones !== 1 ? "s" : ""
+              }}
+              activo{{ filtrosActivosOperaciones !== 1 ? "s" : "" }}
+            </span>
+          </div>
+
+          <div class="grupo-acciones-filtros">
+            <button
+              type="button"
+              class="boton boton-secundario boton-limpiar"
+              @click="limpiarFiltros"
+              title="Limpiar todos los filtros"
+              :disabled="filtrosActivosOperaciones === 0"
+            >
+              <span class="icono-boton">🗑️</span>
+              Limpiar
+            </button>
+          </div>
         </div>
       </div>
     </div>
@@ -150,222 +245,15 @@
       <div class="contenedor-formulario">
         <div class="encabezado-formulario">
           <h2 class="titulo-formulario">Registrar Nueva Operación</h2>
-          <button
-            type="button"
-            class="boton-cerrar"
-            @click="cerrarFormulario"
-            :disabled="formulario.cargandoEnvio"
-          >
+          <button type="button" class="boton-cerrar" @click="cerrarFormulario">
             ✕
           </button>
         </div>
 
-        <form @submit.prevent="guardarOperacion" class="formulario-operacion">
-          <div class="campos-formulario">
-            <!-- Primera fila -->
-            <div class="fila-campos">
-              <CampoEntrada
-                v-model="formulario.formulario.numero_operacion"
-                etiqueta="Número de Operación"
-                placeholder="Se genera automáticamente"
-                solo-lectura
-                texto-ayuda="El número se asigna automáticamente al guardar"
-              />
-
-              <CampoEntrada
-                v-model="formulario.formulario.tipo_operacion"
-                etiqueta="Tipo de Operación"
-                tipo="select"
-                :opciones="tiposOperacionDisponibles"
-                es-requerido
-                :mensaje-error="formulario.obtenerErrorCampo('tipo_operacion')"
-                @blur="formulario.marcarCampoComoTocado('tipo_operacion')"
-              />
-            </div>
-
-            <!-- Segunda fila -->
-            <div class="fila-campos">
-              <CampoEntrada
-                v-model="formulario.formulario.fecha_operacion"
-                etiqueta="Fecha de Operación"
-                tipo="datetime-local"
-                es-requerido
-                :maximo="fechaHoraActual"
-                :mensaje-error="formulario.obtenerErrorCampo('fecha_operacion')"
-                @blur="formulario.marcarCampoComoTocado('fecha_operacion')"
-              />
-
-              <CampoEntrada
-                v-model="formulario.formulario.turno"
-                etiqueta="Turno"
-                tipo="select"
-                :opciones="turnosDisponibles"
-                es-requerido
-                :mensaje-error="formulario.obtenerErrorCampo('turno')"
-                @blur="formulario.marcarCampoComoTocado('turno')"
-              />
-            </div>
-
-            <!-- Tercera fila -->
-            <div class="fila-campos">
-              <CampoEntrada
-                v-model="formulario.formulario.codigo_material"
-                etiqueta="Código del Material"
-                placeholder="Ej: BOGR2062"
-                es-requerido
-                :mensaje-error="formulario.obtenerErrorCampo('codigo_material')"
-                @cambio="buscarMaterial"
-                @blur="formulario.marcarCampoComoTocado('codigo_material')"
-              />
-
-              <CampoEntrada
-                v-model="formulario.formulario.nombre_material"
-                etiqueta="Nombre del Material"
-                placeholder="Se completará automáticamente"
-                solo-lectura
-              />
-            </div>
-
-            <!-- Cuarta fila -->
-            <div class="fila-campos">
-              <CampoEntrada
-                v-model="formulario.formulario.lote"
-                etiqueta="Lote"
-                placeholder="Ej: L2024-001"
-                es-requerido
-                :mensaje-error="formulario.obtenerErrorCampo('lote')"
-                @blur="formulario.marcarCampoComoTocado('lote')"
-              />
-
-              <CampoEntrada
-                v-model="formulario.formulario.cantidad_operacion"
-                etiqueta="Cantidad"
-                tipo="number"
-                placeholder="0"
-                es-requerido
-                minimo="0.01"
-                paso="0.01"
-                :mensaje-error="
-                  formulario.obtenerErrorCampo('cantidad_operacion')
-                "
-                @blur="formulario.marcarCampoComoTocado('cantidad_operacion')"
-              />
-            </div>
-
-            <!-- Quinta fila -->
-            <div class="fila-campos">
-              <CampoEntrada
-                v-model="formulario.formulario.ubicacion_origen"
-                etiqueta="Ubicación de Origen"
-                tipo="select"
-                :opciones="ubicacionesDisponibles"
-                es-requerido
-                :mensaje-error="
-                  formulario.obtenerErrorCampo('ubicacion_origen')
-                "
-                @blur="formulario.marcarCampoComoTocado('ubicacion_origen')"
-              />
-
-              <CampoEntrada
-                v-model="formulario.formulario.ubicacion_destino"
-                etiqueta="Ubicación de Destino"
-                tipo="select"
-                :opciones="ubicacionesDisponibles"
-                texto-ayuda="Solo para operaciones de traslado"
-              />
-            </div>
-
-            <!-- Sexta fila -->
-            <div class="fila-campos">
-              <CampoEntrada
-                v-model="formulario.formulario.temperatura"
-                etiqueta="Temperatura (°C)"
-                tipo="number"
-                placeholder="0"
-                paso="0.1"
-                texto-ayuda="Temperatura de la cámara fría"
-              />
-
-              <CampoEntrada
-                v-model="formulario.formulario.cliente"
-                etiqueta="Cliente"
-                placeholder="Nombre del cliente (si aplica)"
-                texto-ayuda="Para operaciones de despacho"
-              />
-            </div>
-
-            <!-- Séptima fila -->
-            <div class="fila-campos">
-              <CampoEntrada
-                v-model="formulario.formulario.estado"
-                etiqueta="Estado"
-                tipo="select"
-                :opciones="estadosDisponibles"
-                es-requerido
-                :mensaje-error="formulario.obtenerErrorCampo('estado')"
-                @blur="formulario.marcarCampoComoTocado('estado')"
-              />
-
-              <CampoEntrada
-                v-model="formulario.formulario.responsable"
-                etiqueta="Responsable"
-                placeholder="Nombre del operador"
-                es-requerido
-                :mensaje-error="formulario.obtenerErrorCampo('responsable')"
-                @blur="formulario.marcarCampoComoTocado('responsable')"
-              />
-            </div>
-
-            <!-- Octava fila -->
-            <div class="fila-campos fila-completa">
-              <CampoEntrada
-                v-model="formulario.formulario.observaciones"
-                etiqueta="Observaciones"
-                tipo="textarea"
-                placeholder="Información adicional sobre la operación..."
-                :filas="3"
-                texto-ayuda="Opcional: condiciones especiales, incidencias, etc."
-              />
-            </div>
-          </div>
-
-          <!-- Errores generales del formulario -->
-          <MensajeEstado
-            v-if="formulario.tieneErrores"
-            tipo="error"
-            :mensaje="formulario.obtenerErroresFormateados()"
-            :visible="formulario.tieneErrores"
-            :puede-ser-cerrado="false"
-          />
-
-          <!-- Botones del formulario -->
-          <div class="botones-formulario">
-            <button
-              type="button"
-              class="boton boton-secundario"
-              @click="cerrarFormulario"
-              :disabled="formulario.cargandoEnvio"
-            >
-              Cancelar
-            </button>
-            <button
-              type="submit"
-              class="boton boton-principal"
-              :disabled="
-                !formulario.formularioValido || formulario.cargandoEnvio
-              "
-            >
-              <span
-                v-if="formulario.cargandoEnvio"
-                class="icono-boton spinner"
-              ></span>
-              <span v-else class="icono-boton">💾</span>
-              {{
-                formulario.cargandoEnvio ? "Guardando..." : "Guardar Operación"
-              }}
-            </button>
-          </div>
-        </form>
+        <FormularioFrioDespacho
+          @enviar="manejarEnvioFrioDespacho"
+          @cancelar="cerrarFormulario"
+        />
       </div>
     </div>
 
@@ -400,7 +288,6 @@
 
 <script setup>
 import { ref, computed, onMounted, watch } from "vue";
-import { usarFormulario } from "@/composables/usarFormulario";
 import { usarPaginacion } from "@/composables/usarPaginacion";
 import { usarExportacionExcel } from "@/composables/usarExportacionExcel";
 import { servicioOperacionesFrioDespacho } from "@/servicios/servicioOperacionesFrioDespacho";
@@ -408,20 +295,18 @@ import { servicioMantenedores } from "@/servicios/servicioMantenedores";
 import CampoEntrada from "@/componentes/CampoEntrada.vue";
 import MensajeEstado from "@/componentes/MensajeEstado.vue";
 import TablaOperacionesFrioDespacho from "@/componentes/tablas/TablaOperacionesFrioDespacho.vue";
+import FormularioFrioDespacho from "@/componentes/formularios/FormularioFrioDespacho.vue";
 import {
   PLANTAS,
   TIPOS_OPERACION_FRIO,
   ESTADOS_OPERACION,
-  TURNOS,
   MENSAJES,
   obtenerOpcionesSelect,
 } from "@/utilidades/constantes";
 import {
   fechaActualParaInput,
-  fechaHoraActualParaInput,
   filtrarPorTexto,
   filtrarPorRangoFechas,
-  generarId,
 } from "@/utilidades/auxiliares";
 
 // ============== ESTADO REACTIVO ==============
@@ -445,6 +330,12 @@ const filtros = ref({
   fechaDesde: "",
   fechaHasta: "",
   estado: "",
+  turno: "",
+  lote: "",
+  material: "",
+  numeroEmbarque: "",
+  patenteCamion: "",
+  ubicacionOrigen: "",
 });
 
 // Paginación
@@ -461,29 +352,48 @@ const {
   obtenerConfiguracionColumnas,
 } = usarExportacionExcel();
 
-// Formulario de operación
-const formulario = usarFormulario({
-  datosIniciales: {
-    numero_operacion: "",
-    tipo_operacion: "",
-    fecha_operacion: fechaHoraActualParaInput(),
-    turno: "Turno 1",
-    codigo_material: "",
-    nombre_material: "",
-    lote: "",
-    cantidad_operacion: 0,
-    ubicacion_origen: "",
-    ubicacion_destino: "",
-    temperatura: null,
-    cliente: "",
-    estado: "pendiente",
-    responsable: "",
-    observaciones: "",
-    planta: "Rancagua",
-  },
-  tipoValidacion: "operacionesFrioDespacho",
-  validarEnTiempoReal: true,
-});
+// Función para manejar el envío del formulario de frío y despacho
+async function manejarEnvioFrioDespacho(datosFormulario) {
+  try {
+    cargandoDatos.value = true;
+
+    // Preparar datos para la API
+    const datosEnvio = {
+      numero_operacion: datosFormulario.numeroOperacion,
+      tipo_operacion: datosFormulario.tipoOperacion,
+      fecha_operacion: datosFormulario.fechaOperacion,
+      turno: datosFormulario.turno,
+      codigo_material: datosFormulario.codigoMaterial,
+      nombre_material: datosFormulario.nombreMaterial,
+      lote: datosFormulario.lote,
+      cantidad_operacion: parseFloat(datosFormulario.cantidad),
+      ubicacion_origen: datosFormulario.ubicacionOrigen,
+      ubicacion_destino: datosFormulario.ubicacionDestino,
+      temperatura: datosFormulario.temperatura
+        ? parseFloat(datosFormulario.temperatura)
+        : null,
+      cliente: datosFormulario.cliente,
+      estado: datosFormulario.estado || "pendiente",
+      responsable: datosFormulario.responsable || "Usuario",
+      observaciones: datosFormulario.observaciones,
+      planta: datosFormulario.planta,
+    };
+
+    // Llamar al servicio de operaciones de frío y despacho
+    await servicioOperacionesFrioDespacho.crearOperacion(datosEnvio);
+
+    mensajeExito.value = "Operación registrada exitosamente";
+    mostrarFormulario.value = false;
+
+    // Recargar datos
+    await cargarOperaciones();
+  } catch (error) {
+    console.error("Error al guardar operación:", error);
+    mensajeError.value = error.message || "Error al guardar la operación";
+  } finally {
+    cargandoDatos.value = false;
+  }
+}
 
 // ============== COMPUTED PROPERTIES ==============
 
@@ -497,11 +407,33 @@ const estadosDisponibles = computed(() =>
   obtenerOpcionesSelect(ESTADOS_OPERACION)
 );
 
-const turnosDisponibles = computed(() => obtenerOpcionesSelect(TURNOS));
+const turnosRealesDisponibles = computed(() => {
+  const turnosUnicos = [
+    ...new Set(operaciones.value.map((item) => item.turno).filter(Boolean)),
+  ];
 
-const ubicacionesDisponibles = computed(() => {
+  return turnosUnicos.map((turno) => ({
+    value: turno,
+    label: turno,
+  }));
+});
+
+const materialesDisponibles = computed(() => {
+  const materialesUnicos = new Set();
+  operaciones.value.forEach((operacion) => {
+    if (operacion.material?.nombre) {
+      materialesUnicos.add(operacion.material.nombre);
+    }
+  });
+  return Array.from(materialesUnicos).map((material) => ({
+    value: material,
+    label: material,
+  }));
+});
+
+const ubicacionesOrigenDisponibles = computed(() => {
   return ubicaciones.value
-    .filter((u) => u.planta === formulario.formulario.planta)
+    .filter((u) => u.planta === filtros.value.planta)
     .map((u) => ({
       value: u.title,
       label: `${u.title} (${u.bodega_deposito})`,
@@ -509,7 +441,6 @@ const ubicacionesDisponibles = computed(() => {
 });
 
 const fechaActual = computed(() => fechaActualParaInput());
-const fechaHoraActual = computed(() => fechaHoraActualParaInput());
 
 const tieneActivosFiltros = computed(() => {
   const filtrosActivos = [
@@ -518,9 +449,31 @@ const tieneActivosFiltros = computed(() => {
     filtros.value.fechaDesde,
     filtros.value.fechaHasta,
     filtros.value.estado,
+    filtros.value.turno,
+    filtros.value.lote,
+    filtros.value.material,
+    filtros.value.numeroEmbarque,
+    filtros.value.patenteCamion,
+    filtros.value.ubicacionOrigen,
   ].filter((filtro) => filtro && filtro.toString().trim() !== "");
 
   return filtrosActivos.length > 0;
+});
+
+const filtrosActivosOperaciones = computed(() => {
+  return [
+    filtros.value.busqueda,
+    filtros.value.tipoOperacion,
+    filtros.value.fechaDesde,
+    filtros.value.fechaHasta,
+    filtros.value.estado,
+    filtros.value.turno,
+    filtros.value.lote,
+    filtros.value.material,
+    filtros.value.numeroEmbarque,
+    filtros.value.patenteCamion,
+    filtros.value.ubicacionOrigen,
+  ].filter((filtro) => filtro && filtro.toString().trim() !== "").length;
 });
 
 // ============== MÉTODOS ==============
@@ -536,7 +489,7 @@ async function cargarOperaciones() {
 
     operaciones.value = datos || [];
     aplicarFiltros();
-    mostrarMensajeExito("Operaciones actualizadas correctamente");
+    mensajeExito.value = "Operaciones actualizadas correctamente";
   } catch (error) {
     console.error("Error al cargar operaciones:", error);
     mensajeError.value = error.message || MENSAJES.ERROR_GENERICO;
@@ -555,28 +508,6 @@ async function cargarUbicaciones() {
   }
 }
 
-async function buscarMaterial() {
-  const codigo = formulario.formulario.codigo_material?.trim();
-  if (!codigo || codigo.length < 2) {
-    formulario.formulario.nombre_material = "";
-    return;
-  }
-
-  try {
-    const material = await servicioMantenedores.obtenerMaterialPorCodigo(
-      codigo
-    );
-    if (material) {
-      formulario.formulario.nombre_material = material.nombre_material || "";
-    } else {
-      formulario.formulario.nombre_material = "";
-    }
-  } catch (error) {
-    console.error("Error al buscar material:", error);
-    formulario.formulario.nombre_material = "";
-  }
-}
-
 function aplicarFiltros() {
   let datos = [...operaciones.value];
 
@@ -589,6 +520,9 @@ function aplicarFiltros() {
       "lote",
       "cliente",
       "responsable",
+      "numero_embarque",
+      "patente_camion",
+      "observaciones",
     ]);
   }
 
@@ -602,6 +536,51 @@ function aplicarFiltros() {
   // Aplicar filtro de estado
   if (filtros.value.estado) {
     datos = datos.filter((item) => item.estado === filtros.value.estado);
+  }
+
+  // Aplicar filtro de turno
+  if (filtros.value.turno) {
+    datos = datos.filter((item) => item.turno === filtros.value.turno);
+  }
+
+  // Aplicar filtro de lote
+  if (filtros.value.lote) {
+    const lote = filtros.value.lote.toLowerCase();
+    datos = datos.filter((item) => item.lote?.toLowerCase().includes(lote));
+  }
+
+  // Aplicar filtro de material
+  if (filtros.value.material) {
+    datos = datos.filter(
+      (item) => item.material?.nombre === filtros.value.material
+    );
+  }
+
+  // Aplicar filtro de número de embarque
+  if (filtros.value.numeroEmbarque) {
+    const numeroEmbarque = filtros.value.numeroEmbarque.toLowerCase();
+    datos = datos.filter((item) =>
+      item.numero_embarque?.toLowerCase().includes(numeroEmbarque)
+    );
+  }
+
+  // Aplicar filtro de patente de camión
+  if (filtros.value.patenteCamion) {
+    const patenteCamion = filtros.value.patenteCamion.toLowerCase();
+    datos = datos.filter((item) =>
+      item.patente_camion?.toLowerCase().includes(patenteCamion)
+    );
+  }
+
+  // Aplicar filtro de ubicación origen
+  if (filtros.value.ubicacionOrigen) {
+    datos = datos.filter((item) => {
+      const ubicacionNombre =
+        item.ubicacion_origen?.title ||
+        item.ubicacion_origen?.nombre ||
+        item.ubicacion_origen?.id;
+      return ubicacionNombre === filtros.value.ubicacionOrigen;
+    });
   }
 
   // Aplicar filtro de fechas
@@ -627,73 +606,43 @@ function limpiarFiltros() {
     fechaDesde: "",
     fechaHasta: "",
     estado: "",
+    turno: "",
+    lote: "",
+    material: "",
+    numeroEmbarque: "",
+    patenteCamion: "",
+    ubicacionOrigen: "",
   };
   aplicarFiltros();
 }
 
 function verDetalleOperacion(operacion) {
   // TODO: Implementar modal de detalle
-  mostrarMensajeExito(
-    `Detalle de operación ${operacion.numero_operacion} (en desarrollo)`
-  );
+  mensajeExito.value = `Detalle de operación ${operacion.numero_operacion} (en desarrollo)`;
 }
 
 function editarOperacion(operacion) {
   // TODO: Implementar edición
-  mostrarMensajeExito(
-    `Edición de operación ${operacion.numero_operacion} (en desarrollo)`
-  );
+  mensajeExito.value = `Edición de operación ${operacion.numero_operacion} (en desarrollo)`;
 }
 
 function completarOperacion(operacion) {
   // TODO: Implementar completado de operación
-  mostrarMensajeExito(
-    `Completar operación ${operacion.numero_operacion} (en desarrollo)`
-  );
+  mensajeExito.value = `Completar operación ${operacion.numero_operacion} (en desarrollo)`;
 }
 
 function imprimirOperacion(operacion) {
   // TODO: Implementar impresión
-  mostrarMensajeExito(
-    `Impresión de operación ${operacion.numero_operacion} (en desarrollo)`
-  );
+  mensajeExito.value = `Impresión de operación ${operacion.numero_operacion} (en desarrollo)`;
 }
 
 function generarReporte() {
   // TODO: Implementar reporte
-  mostrarMensajeExito("Generación de reporte en desarrollo");
-}
-
-async function guardarOperacion() {
-  const exito = await formulario.manejarEnvio(async (datos) => {
-    // Generar número de operación si no existe
-    if (!datos.numero_operacion) {
-      datos.numero_operacion = `OP-${new Date().getFullYear()}-${generarId(4)}`;
-    }
-
-    return await servicioOperacionesFrioDespacho.crearOperacion(datos);
-  });
-
-  if (exito) {
-    mostrarMensajeExito(MENSAJES.EXITO_CREAR);
-    cerrarFormulario();
-    await cargarOperaciones();
-  }
+  mensajeExito.value = "Generación de reporte en desarrollo";
 }
 
 function cerrarFormulario() {
   mostrarFormulario.value = false;
-  formulario.reiniciarFormulario();
-  // Resetear valores por defecto
-  formulario.formulario.fecha_operacion = fechaHoraActualParaInput();
-  formulario.formulario.planta = filtros.value.planta;
-  formulario.formulario.turno = "Turno 1";
-  formulario.formulario.estado = "pendiente";
-}
-
-function mostrarMensajeExito(mensaje) {
-  mensajeExito.value = mensaje;
-  mensajeError.value = "";
 }
 
 async function exportarAExcel() {
@@ -713,9 +662,7 @@ async function exportarAExcel() {
       { anchoColumnas: configuracionColumnas }
     );
 
-    mostrarMensajeExito(
-      `Reporte exportado exitosamente: ${resultado.nombreArchivo} (${resultado.registrosExportados} registros)`
-    );
+    mensajeExito.value = `Reporte exportado exitosamente: ${resultado.nombreArchivo} (${resultado.registrosExportados} registros)`;
   } catch (error) {
     console.error("Error al exportar a Excel:", error);
     mensajeError.value = `Error al generar el reporte Excel: ${error.message}`;
@@ -723,14 +670,6 @@ async function exportarAExcel() {
 }
 
 // ============== WATCHERS ==============
-
-watch(
-  () => filtros.value.planta,
-  async (nuevaPlanta) => {
-    formulario.formulario.planta = nuevaPlanta;
-    await cargarOperaciones();
-  }
-);
 
 watch(
   () => [
@@ -753,6 +692,9 @@ onMounted(async () => {
 </script>
 
 <style scoped>
+/* Importar estilos optimizados de filtros */
+@import "../estilos/filtros-optimizados.css";
+
 .vista-operaciones-frio {
   padding: 1.5rem;
   max-width: 100%;
@@ -861,33 +803,36 @@ onMounted(async () => {
   line-height: 1;
 }
 
-/* Filtros */
-.seccion-filtros {
-  background: white;
-  border-radius: 1rem;
-  padding: 1.5rem;
-  margin-bottom: 2rem;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-  border: 1px solid #f1f5f9;
-}
-
-.filtros-fila-principal {
-  display: grid;
-  grid-template-columns: 1fr auto auto;
+/* Estilos específicos para VistaOperacionesFrioDespacho */
+.indicadores-filtros {
+  display: flex;
+  align-items: center;
   gap: 1rem;
-  align-items: end;
-  margin-bottom: 1rem;
 }
 
-.filtros-fila-secundaria {
-  display: grid;
-  grid-template-columns: auto auto auto auto;
+.grupo-acciones-filtros {
+  display: flex;
+  align-items: center;
   gap: 1rem;
-  align-items: end;
+  justify-content: flex-end;
 }
 
-.boton-limpiar {
-  justify-self: end;
+/* Optimización específica para el layout de operaciones frío */
+.vista-operaciones-frio .filtros-fila-principal {
+  grid-template-columns: 2.5fr 1fr 1fr;
+}
+
+.vista-operaciones-frio .filtros-fila-secundaria {
+  grid-template-columns: repeat(3, minmax(140px, 1fr));
+}
+
+.vista-operaciones-frio .filtros-fila-avanzada {
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+}
+
+.vista-operaciones-frio .filtros-fila-acciones {
+  justify-content: space-between;
+  align-items: center;
 }
 
 /* Formulario */

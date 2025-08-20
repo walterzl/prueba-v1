@@ -88,6 +88,10 @@ export const ESTADOS_TARJA = {
   AGOTADO: "agotado",
   CERRADO: "cerrado",
   VENCIDO: "vencido",
+  IMPRESA: "impresa",
+  PENDIENTE: "pendiente",
+  EN_PROCESO: "en_proceso",
+  COMPLETADA: "completada",
 };
 
 export const LISTA_ESTADOS_TARJA = Object.values(ESTADOS_TARJA);

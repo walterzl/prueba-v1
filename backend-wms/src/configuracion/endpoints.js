@@ -55,6 +55,16 @@ const ENDPOINTS = {
 
     // Unidades de Medida
     UNIDADES_MEDIDA: "/api/mantenedores/unidades-medida",
+
+    // Campos adicionales para formularios
+    TIPOS_TARJA: "/api/mantenedores/tipos-tarja",
+    TIPOS_OPERACION: "/api/mantenedores/tipos-operacion",
+    TURNOS: "/api/mantenedores/turnos",
+    BODEGAS: "/api/mantenedores/bodegas",
+    ESTADOS_TARJA: "/api/mantenedores/estados-tarja",
+    CERTIFICACIONES_CAA: "/api/mantenedores/certificaciones-caa",
+    PRIORIDADES: "/api/mantenedores/prioridades",
+    ROLES: "/api/mantenedores/roles",
   },
 
   // Trazabilidad
@@ -123,6 +133,17 @@ const ENDPOINTS = {
     POR_USUARIO: "/api/logs/usuario/:usuarioId",
     POR_FECHA: "/api/logs/fecha/:fechaInicio/:fechaFin",
     POR_NIVEL: "/api/logs/nivel/:nivel",
+  },
+
+  // Campos Anidados
+  CAMPOS_ANIDADOS: {
+    BASE: "/api/campos-anidados",
+    OPCIONES: "/api/campos-anidados/:formulario/:campo/opciones",
+    OPCIONES_PAGINADAS:
+      "/api/campos-anidados/:formulario/:campo/opciones-paginadas",
+    CONFIGURACION: "/api/campos-anidados/:formulario/configuracion",
+    BUSCAR_MULTIPLES: "/api/campos-anidados/:formulario/buscar-multiples",
+    VALIDAR_VALOR: "/api/campos-anidados/:formulario/:campo/validar/:valor",
   },
 
   // Operaciones de Frío y Despacho

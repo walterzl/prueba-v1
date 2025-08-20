@@ -106,19 +106,20 @@ async function manejarCierreSesion() {
 .loading-content {
   text-align: center;
   background: rgba(255, 255, 255, 0.1);
-  padding: 2rem;
-  border-radius: 20px;
+  padding: 1.2rem;
+  border-radius: 12px;
   backdrop-filter: blur(10px);
 }
 
 .loading-content h2 {
-  margin-bottom: 1rem;
-  font-size: 2rem;
+  margin-bottom: 0.6rem;
+  font-size: 1.2rem;
 }
 
 .loading-content p {
   margin: 0;
   opacity: 0.8;
+  font-size: 0.6rem;
 }
 
 .app-container {
@@ -130,19 +131,19 @@ async function manejarCierreSesion() {
 }
 
 .sidebar {
-  width: 280px;
+  width: 168px;
   background: linear-gradient(180deg, #ffffff 0%, #f8fafc 100%);
   color: #0f172a;
   display: flex;
   flex-direction: column;
   padding: 0;
-  box-shadow: 4px 0 20px rgba(0, 0, 0, 0.08);
-  border-right: 1px solid #e2e8f0;
+  box-shadow: 2.4px 0 12px rgba(0, 0, 0, 0.08);
+  border-right: 0.6px solid #e2e8f0;
 }
 
 .sidebar-header {
-  padding: 2rem 1.5rem 1.5rem;
-  border-bottom: 1px solid #e2e8f0;
+  padding: 1.2rem 0.9rem 0.9rem;
+  border-bottom: 0.6px solid #e2e8f0;
   background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);
 }
 
@@ -150,17 +151,17 @@ async function manejarCierreSesion() {
   text-align: center;
   margin: 0;
   color: white;
-  font-size: 1.5rem;
+  font-size: 0.9rem;
   font-weight: 700;
-  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  text-shadow: 0 1.2px 2.4px rgba(0, 0, 0, 0.1);
 }
 
 .sidebar-nav {
   flex-grow: 1;
-  padding: 1.5rem 1rem;
+  padding: 0.9rem 0.6rem;
   display: flex;
   flex-direction: column;
-  gap: 0.5rem;
+  gap: 0.3rem;
 }
 
 .nav-link {
@@ -168,11 +169,11 @@ async function manejarCierreSesion() {
   align-items: center;
   color: #334155;
   text-decoration: none;
-  padding: 1rem 1.25rem;
+  padding: 0.6rem 0.75rem;
   margin: 0;
-  border-radius: 12px;
+  border-radius: 7.2px;
   font-weight: 500;
-  font-size: 0.95rem;
+  font-size: 0.57rem;
   transition: all 0.3s ease;
   position: relative;
   background: transparent;
@@ -181,73 +182,73 @@ async function manejarCierreSesion() {
 .nav-link:hover {
   background: linear-gradient(135deg, #f1f5f9 0%, #e2e8f0 100%);
   color: #0f172a;
-  transform: translateX(4px);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+  transform: translateX(2.4px);
+  box-shadow: 0 2.4px 7.2px rgba(0, 0, 0, 0.05);
 }
 
 .nav-link.router-link-exact-active {
   background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);
   color: white;
-  box-shadow: 0 4px 20px rgba(79, 70, 229, 0.3);
-  transform: translateX(4px);
+  box-shadow: 0 2.4px 12px rgba(79, 70, 229, 0.3);
+  transform: translateX(2.4px);
 }
 
 .nav-link.router-link-exact-active::before {
   content: "";
   position: absolute;
-  left: -1rem;
+  left: -0.6rem;
   top: 50%;
   transform: translateY(-50%);
-  width: 4px;
+  width: 2.4px;
   height: 60%;
   background: linear-gradient(180deg, #4f46e5 0%, #7c3aed 100%);
-  border-radius: 0 4px 4px 0;
+  border-radius: 0 2.4px 2.4px 0;
 }
 
 .sidebar-footer {
-  border-top: 1px solid #e2e8f0;
-  padding: 1.5rem;
+  border-top: 0.6px solid #e2e8f0;
+  padding: 0.9rem;
   background: linear-gradient(180deg, #f8fafc 0%, #f1f5f9 100%);
 }
 
 .user-info {
   text-align: center;
-  margin-bottom: 1rem;
-  padding: 0.75rem;
+  margin-bottom: 0.6rem;
+  padding: 0.45rem;
   background: white;
-  border-radius: 8px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+  border-radius: 4.8px;
+  box-shadow: 0 1.2px 4.8px rgba(0, 0, 0, 0.05);
 }
 
 .user-info span {
   font-weight: 600;
   color: #0f172a;
-  font-size: 0.9rem;
+  font-size: 0.54rem;
 }
 
 .logout-button {
   width: 100%;
-  padding: 0.875rem;
+  padding: 0.525rem;
   border: none;
-  border-radius: 8px;
+  border-radius: 4.8px;
   background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
   color: white;
   cursor: pointer;
   font-weight: 600;
-  font-size: 0.9rem;
+  font-size: 0.54rem;
   transition: all 0.3s ease;
-  box-shadow: 0 2px 8px rgba(239, 68, 68, 0.2);
+  box-shadow: 0 1.2px 4.8px rgba(239, 68, 68, 0.2);
 }
 
 .logout-button:hover {
   background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%);
-  box-shadow: 0 4px 16px rgba(239, 68, 68, 0.3);
-  transform: translateY(-1px);
+  box-shadow: 0 2.4px 9.6px rgba(239, 68, 68, 0.3);
+  transform: translateY(-0.6px);
 }
 
 .main-content {
   flex-grow: 1;
-  padding: 2rem;
+  padding: 1.2rem;
   overflow-y: auto;
   background: linear-gradient(135deg, #f8fafc 0%, #ffffff 100%);
   position: relative;
@@ -283,14 +284,14 @@ async function manejarCierreSesion() {
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
 }
 
-/* Responsive adjustments */
-@media (max-width: 1024px) {
+/* Responsive adjustments - Reducido 40% */
+@media (max-width: 614px) {
   .sidebar {
-    width: 260px;
+    width: 156px;
   }
 }
 
-@media (max-width: 768px) {
+@media (max-width: 460px) {
   .app-container {
     flex-direction: column;
   }
@@ -298,21 +299,21 @@ async function manejarCierreSesion() {
   .sidebar {
     width: 100%;
     height: auto;
-    max-height: 200px;
+    max-height: 120px;
     overflow-y: auto;
   }
 
   .sidebar-nav {
     flex-direction: row;
     overflow-x: auto;
-    gap: 0.25rem;
-    padding: 1rem;
+    gap: 0.15rem;
+    padding: 0.6rem;
   }
 
   .nav-link {
-    min-width: 120px;
+    min-width: 72px;
     text-align: center;
-    padding: 0.75rem 1rem;
+    padding: 0.45rem 0.6rem;
   }
 }
 </style>

@@ -1,6 +1,6 @@
 /* Estilos Globales del Sistema WMS */
 
-/* Variables CSS para colores y espaciado consistente */
+/* Variables CSS para colores y espaciado consistente - Reducido 40% */
 :root {
   /* Colores principales */
   --color-primario: #4f46e5;
@@ -26,26 +26,27 @@
   --texto-secundario: #334155;
   --texto-deshabilitado: #64748b;
 
-  /* Espaciado */
-  --espaciado-xs: 0.25rem;
-  --espaciado-sm: 0.5rem;
-  --espaciado-md: 0.75rem;
-  --espaciado-lg: 1rem;
-  --espaciado-xl: 1.5rem;
-  --espaciado-2xl: 2rem;
-  --espaciado-3xl: 3rem;
+  /* Espaciado - Reducido 40% */
+  --espaciado-xs: 0.15rem;
+  --espaciado-sm: 0.3rem;
+  --espaciado-md: 0.45rem;
+  --espaciado-lg: 0.6rem;
+  --espaciado-xl: 0.9rem;
+  --espaciado-2xl: 1.2rem;
+  --espaciado-3xl: 1.8rem;
 
-  /* Bordes */
-  --radio-pequeno: 8px;
-  --radio-medio: 12px;
-  --radio-grande: 16px;
-  --radio-extra-grande: 20px;
+  /* Bordes - Reducido 40% */
+  --radio-pequeno: 4.8px;
+  --radio-medio: 7.2px;
+  --radio-grande: 9.6px;
+  --radio-extra-grande: 12px;
 
-  /* Sombras */
-  --sombra-pequena: 0 2px 4px rgba(0, 0, 0, 0.05);
-  --sombra-media: 0 4px 6px rgba(0, 0, 0, 0.05), 0 1px 3px rgba(0, 0, 0, 0.1);
-  --sombra-grande: 0 10px 25px rgba(0, 0, 0, 0.1);
-  --sombra-extra-grande: 0 20px 40px rgba(0, 0, 0, 0.15);
+  /* Sombras - Reducido 40% */
+  --sombra-pequena: 0 1.2px 2.4px rgba(0, 0, 0, 0.05);
+  --sombra-media: 0 2.4px 3.6px rgba(0, 0, 0, 0.05),
+    0 0.6px 1.8px rgba(0, 0, 0, 0.1);
+  --sombra-grande: 0 6px 15px rgba(0, 0, 0, 0.1);
+  --sombra-extra-grande: 0 12px 24px rgba(0, 0, 0, 0.15);
 
   /* Transiciones */
   --transicion-rapida: all 0.2s ease;
@@ -53,13 +54,13 @@
   --transicion-lenta: all 0.5s ease;
 }
 
-/* Clases de utilidad para botones */
+/* Clases de utilidad para botones - Reducido 40% */
 .boton {
   padding: var(--espaciado-md) var(--espaciado-xl);
   border: none;
   border-radius: var(--radio-medio);
   font-weight: 600;
-  font-size: 0.95rem;
+  font-size: 4rem;
   cursor: pointer;
   transition: var(--transicion-normal);
   text-decoration: none;
@@ -126,7 +127,7 @@
   box-shadow: none;
 }
 
-/* Clases de utilidad para formularios */
+/* Clases de utilidad para formularios - Reducido 40% */
 .grupo-entrada {
   margin-bottom: var(--espaciado-xl);
   display: flex;
@@ -137,14 +138,14 @@
   margin-bottom: var(--espaciado-sm);
   color: var(--texto-secundario);
   font-weight: 600;
-  font-size: 0.95rem;
+  font-size: 2rem;
 }
 
 .entrada {
   padding: var(--espaciado-lg) var(--espaciado-xl);
-  border: 2px solid var(--fondo-gris-medio);
+  border: 1.2px solid var(--fondo-gris-medio);
   border-radius: var(--radio-medio);
-  font-size: 1rem;
+  font-size: 2rem;
   background: var(--fondo-claro);
   transition: var(--transicion-normal);
   color: var(--texto-primario);
@@ -160,29 +161,29 @@
   border-color: #d1d5db;
 }
 
-/* Clases de utilidad para tarjetas */
+/* Clases de utilidad para tarjetas - Reducido 40% */
 .tarjeta {
   background: var(--fondo-claro);
   border-radius: var(--radio-grande);
   padding: var(--espaciado-2xl);
   box-shadow: var(--sombra-media);
-  border: 1px solid var(--fondo-gris);
+  border: 0.6px solid var(--fondo-gris);
   transition: var(--transicion-normal);
 }
 
 .tarjeta:hover {
-  transform: translateY(-4px);
+  transform: translateY(-2.4px);
   box-shadow: var(--sombra-grande);
 }
 
 .tarjeta-encabezado {
   margin-bottom: var(--espaciado-xl);
   padding-bottom: var(--espaciado-lg);
-  border-bottom: 1px solid var(--fondo-gris);
+  border-bottom: 0.6px solid var(--fondo-gris);
 }
 
 .tarjeta-titulo {
-  font-size: 1.5rem;
+  font-size: 0.9rem;
   font-weight: 700;
   color: var(--texto-primario);
   margin: 0;
@@ -193,13 +194,13 @@
   line-height: 1.6;
 }
 
-/* Clases de utilidad para tablas */
+/* Clases de utilidad para tablas - Reducido 40% */
 .tabla-contenedor {
   background: var(--fondo-claro);
   border-radius: var(--radio-grande);
   overflow: hidden;
   box-shadow: var(--sombra-media);
-  border: 1px solid var(--fondo-gris);
+  border: 0.6px solid var(--fondo-gris);
 }
 
 .tabla {
@@ -211,7 +212,8 @@
 .tabla td {
   padding: var(--espaciado-lg);
   text-align: left;
-  border-bottom: 1px solid var(--fondo-gris);
+  border-bottom: 0.6px solid var(--fondo-gris);
+  font-size: 10rem;
 }
 
 .tabla th {
@@ -224,12 +226,13 @@
   background: var(--fondo-gris-claro);
 }
 
-/* Clases de utilidad para mensajes */
+/* Clases de utilidad para mensajes - Reducido 40% */
 .mensaje {
   padding: var(--espaciado-lg);
   border-radius: var(--radio-medio);
   margin-bottom: var(--espaciado-lg);
   font-weight: 500;
+  font-size: 0.6rem;
 }
 
 .mensaje-exito {
@@ -256,22 +259,23 @@
   border: 1px solid rgba(59, 130, 246, 0.2);
 }
 
-/* Clases de utilidad para carga */
+/* Clases de utilidad para carga - Reducido 40% */
 .cargando {
   display: flex;
   align-items: center;
   justify-content: center;
   padding: var(--espaciado-3xl);
   color: var(--texto-secundario);
+  font-size: 0.6rem;
 }
 
 .cargando::after {
   content: "";
-  width: 20px;
-  height: 20px;
+  width: 12px;
+  height: 12px;
   margin-left: var(--espaciado-lg);
-  border: 2px solid transparent;
-  border-top: 2px solid currentColor;
+  border: 1.2px solid transparent;
+  border-top: 1.2px solid currentColor;
   border-radius: 50%;
   animation: girar 1s linear infinite;
 }
@@ -327,7 +331,7 @@
   }
 }
 
-/* Utilidades de texto */
+/* Utilidades de texto - Reducido 40% */
 .texto-centrado {
   text-align: center;
 }
@@ -337,15 +341,15 @@
 }
 
 .texto-pequeno {
-  font-size: 0.875rem;
+  font-size: 0.525rem;
 }
 
 .texto-grande {
-  font-size: 1.125rem;
+  font-size: 0.675rem;
 }
 
 .texto-extra-grande {
-  font-size: 1.25rem;
+  font-size: 1rem;
 }
 
 .peso-ligero {

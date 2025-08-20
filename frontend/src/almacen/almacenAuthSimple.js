@@ -2,6 +2,9 @@ import { defineStore } from "pinia";
 import { ref, computed, readonly } from "vue";
 import { servicioAutenticacion } from "@/servicios/servicioAuth";
 
+// Cache para verificaciones de sesión
+let verificacionEnCurso = null;
+
 /**
  * Almacén simplificado de autenticación con API real
  */
@@ -39,11 +42,12 @@ export const usarAlmacenAutenticacion = defineStore("autenticacion", () => {
   function limpiarSesion() {
     token.value = null;
     datosUsuario.value = null;
+    verificacionEnCurso = null;
 
     localStorage.removeItem("tokenAutenticacion");
     localStorage.removeItem("datosUsuario");
 
-    console.log("Sesión limpiada");
+    console.log("Sesión limpiada completamente");
   }
 
   async function iniciarSesion(credenciales) {
@@ -81,16 +85,44 @@ export const usarAlmacenAutenticacion = defineStore("autenticacion", () => {
   }
 
   async function verificarSesion() {
-    if (!token.value) return false;
-
-    try {
-      // Usar el servicio real de verificación de token
-      return await servicioAutenticacion.verificarToken(token.value);
-    } catch (error) {
-      console.error("Error al verificar sesión:", error);
-      limpiarSesion();
+    if (!token.value) {
+      verificacionEnCurso = null;
       return false;
     }
+
+    // Si ya hay una verificación en curso, esperar su resultado
+    if (verificacionEnCurso) {
+      console.log("Verificación ya en curso, esperando resultado...");
+      return verificacionEnCurso;
+    }
+
+    // Iniciar nueva verificación
+    verificacionEnCurso = (async () => {
+      try {
+        console.log("Iniciando verificación de sesión...");
+        const resultado = await servicioAutenticacion.verificarToken(
+          token.value
+        );
+
+        if (!resultado) {
+          console.log("Token inválido, limpiando sesión local");
+          limpiarSesion();
+        }
+
+        return resultado;
+      } catch (error) {
+        console.error("Error al verificar sesión:", error);
+        limpiarSesion();
+        return false;
+      } finally {
+        // Limpiar la verificación después de un pequeño retraso
+        setTimeout(() => {
+          verificacionEnCurso = null;
+        }, 1000);
+      }
+    })();
+
+    return verificacionEnCurso;
   }
 
   return {

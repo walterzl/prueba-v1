@@ -72,73 +72,170 @@
     />
 
     <!-- Filtros de búsqueda -->
-    <div class="seccion-filtros">
+    <!-- Filtros de búsqueda -->
+    <div class="seccion-filtros vista-recepcion-lotes">
       <div class="contenedor-filtros">
+        <!-- Fila Principal: Búsqueda + Planta + Estado -->
         <div class="filtros-fila-principal">
-          <CampoEntrada
-            v-model="filtros.busqueda"
-            etiqueta="Buscar"
-            placeholder="Número de recepción, proveedor, material..."
-            tipo="search"
-            :mostrar-etiqueta="false"
-            @cambio="aplicarFiltros"
-          />
+          <div class="campo-busqueda-principal">
+            <CampoEntrada
+              v-model="filtros.busqueda"
+              etiqueta="Búsqueda General"
+              placeholder="Número de recepción, proveedor, material..."
+              tipo="search"
+              :mostrar-etiqueta="true"
+              @cambio="aplicarFiltros"
+            />
+          </div>
 
-          <CampoEntrada
-            v-model="filtros.planta"
-            etiqueta="Planta"
-            tipo="select"
-            :opciones="plantasDisponibles"
-            :mostrar-etiqueta="false"
-            @cambio="aplicarFiltros"
-          />
+          <div class="campo-select">
+            <CampoEntrada
+              v-model="filtros.planta"
+              etiqueta="Planta"
+              tipo="select"
+              :opciones="plantasDisponibles"
+              :mostrar-etiqueta="true"
+              @cambio="aplicarFiltros"
+            />
+          </div>
 
-          <CampoEntrada
-            v-model="filtros.estado"
-            etiqueta="Estado"
-            tipo="select"
-            :opciones="estadosDisponibles"
-            :mostrar-etiqueta="false"
-            @cambio="aplicarFiltros"
-          />
+          <div class="campo-select">
+            <CampoEntrada
+              v-model="filtros.estado"
+              etiqueta="Estado"
+              tipo="select"
+              :opciones="estadosDisponibles"
+              :mostrar-etiqueta="true"
+              @cambio="aplicarFiltros"
+            />
+          </div>
         </div>
 
+        <!-- Fila Secundaria: Fechas + Proveedor -->
         <div class="filtros-fila-secundaria">
-          <CampoEntrada
-            v-model="filtros.fechaDesde"
-            etiqueta="Desde"
-            tipo="date"
-            :maximo="filtros.fechaHasta || fechaActual"
-            @cambio="aplicarFiltros"
-          />
+          <div class="campo-fecha">
+            <CampoEntrada
+              v-model="filtros.fechaDesde"
+              etiqueta="Fecha Desde"
+              tipo="date"
+              :maximo="filtros.fechaHasta || fechaActual"
+              :mostrar-etiqueta="true"
+              @cambio="aplicarFiltros"
+            />
+          </div>
 
-          <CampoEntrada
-            v-model="filtros.fechaHasta"
-            etiqueta="Hasta"
-            tipo="date"
-            :minimo="filtros.fechaDesde"
-            :maximo="fechaActual"
-            @cambio="aplicarFiltros"
-          />
+          <div class="campo-fecha">
+            <CampoEntrada
+              v-model="filtros.fechaHasta"
+              etiqueta="Fecha Hasta"
+              tipo="date"
+              :minimo="filtros.fechaDesde"
+              :maximo="fechaActual"
+              :mostrar-etiqueta="true"
+              @cambio="aplicarFiltros"
+            />
+          </div>
 
-          <CampoEntrada
-            v-model="filtros.proveedor"
-            etiqueta="Proveedor"
-            tipo="select"
-            :opciones="proveedoresDisponibles"
-            :mostrar-etiqueta="false"
-            @cambio="aplicarFiltros"
-          />
+          <div class="campo-select">
+            <CampoEntrada
+              v-model="filtros.proveedor"
+              etiqueta="Proveedor"
+              tipo="select"
+              :opciones="proveedoresDisponibles"
+              :mostrar-etiqueta="true"
+              @cambio="aplicarFiltros"
+            />
+          </div>
+        </div>
 
-          <button
-            type="button"
-            class="boton boton-secundario boton-limpiar"
-            @click="limpiarFiltros"
-            title="Limpiar filtros"
-          >
-            <span class="icono-boton">🗑️</span>
-            Limpiar
-          </button>
+        <!-- Fila Avanzada: Filtros específicos -->
+        <div class="filtros-fila-avanzada">
+          <div class="campo-texto">
+            <CampoEntrada
+              v-model="filtros.lote"
+              etiqueta="Lote"
+              placeholder="Filtrar por lote..."
+              @cambio="aplicarFiltros"
+            />
+          </div>
+
+          <div class="campo-texto">
+            <CampoEntrada
+              v-model="filtros.guiaSII"
+              etiqueta="Guía SII"
+              placeholder="Filtrar por guía SII..."
+              @cambio="aplicarFiltros"
+            />
+          </div>
+
+          <div class="campo-select">
+            <CampoEntrada
+              v-model="filtros.material"
+              etiqueta="Material"
+              tipo="select"
+              :opciones="materialesDisponibles"
+              @cambio="aplicarFiltros"
+            />
+          </div>
+
+          <div class="campo-select">
+            <CampoEntrada
+              v-model="filtros.clasificacion"
+              etiqueta="Clasificación"
+              tipo="select"
+              :opciones="clasificacionesDisponibles"
+              @cambio="aplicarFiltros"
+            />
+          </div>
+
+          <div class="campo-select">
+            <CampoEntrada
+              v-model="filtros.unidadMedida"
+              etiqueta="Unidad Medida"
+              tipo="select"
+              :opciones="unidadesMedidaDisponibles"
+              @cambio="aplicarFiltros"
+            />
+          </div>
+
+          <div class="campo-select">
+            <CampoEntrada
+              v-model="filtros.ubicacionDestino"
+              etiqueta="Ubicación Destino"
+              tipo="select"
+              :opciones="ubicacionesDestinoDisponibles"
+              @cambio="aplicarFiltros"
+            />
+          </div>
+        </div>
+
+        <!-- Fila de Acciones -->
+        <div class="filtros-fila-acciones">
+          <div class="indicadores-filtros">
+            <span
+              v-if="filtrosActivosRecepcion > 0"
+              class="filtros-activos-badge"
+            >
+              <span class="icono">🔍</span>
+              {{ filtrosActivosRecepcion }} filtro{{
+                filtrosActivosRecepcion !== 1 ? "s" : ""
+              }}
+              activo{{ filtrosActivosRecepcion !== 1 ? "s" : "" }}
+            </span>
+          </div>
+
+          <div class="grupo-acciones-filtros">
+            <button
+              type="button"
+              class="boton boton-secundario boton-limpiar"
+              @click="limpiarFiltros"
+              title="Limpiar todos los filtros"
+              :disabled="filtrosActivosRecepcion === 0"
+            >
+              <span class="icono-boton">🗑️</span>
+              Limpiar
+            </button>
+          </div>
         </div>
       </div>
     </div>
@@ -148,205 +245,15 @@
       <div class="contenedor-formulario">
         <div class="encabezado-formulario">
           <h2 class="titulo-formulario">Registrar Nueva Recepción</h2>
-          <button
-            type="button"
-            class="boton-cerrar"
-            @click="cerrarFormulario"
-            :disabled="formulario.cargandoEnvio"
-          >
+          <button type="button" class="boton-cerrar" @click="cerrarFormulario">
             ✕
           </button>
         </div>
 
-        <form @submit.prevent="guardarRecepcion" class="formulario-recepcion">
-          <div class="campos-formulario">
-            <!-- Primera fila -->
-            <div class="fila-campos">
-              <CampoEntrada
-                v-model="formulario.formulario.numero_recepcion"
-                etiqueta="Número de Recepción"
-                placeholder="Se genera automáticamente"
-                solo-lectura
-                texto-ayuda="El número se asigna automáticamente al guardar"
-              />
-
-              <CampoEntrada
-                v-model="formulario.formulario.fecha_recepcion"
-                etiqueta="Fecha de Recepción"
-                tipo="datetime-local"
-                es-requerido
-                :maximo="fechaHoraActual"
-                :mensaje-error="formulario.obtenerErrorCampo('fecha_recepcion')"
-                @blur="formulario.marcarCampoComoTocado('fecha_recepcion')"
-              />
-            </div>
-
-            <!-- Segunda fila -->
-            <div class="fila-campos">
-              <CampoEntrada
-                v-model="formulario.formulario.proveedor"
-                etiqueta="Proveedor"
-                tipo="select"
-                :opciones="proveedoresDisponibles"
-                es-requerido
-                :mensaje-error="formulario.obtenerErrorCampo('proveedor')"
-                @blur="formulario.marcarCampoComoTocado('proveedor')"
-              />
-
-              <CampoEntrada
-                v-model="formulario.formulario.numero_guia"
-                etiqueta="Número de Guía"
-                placeholder="Ej: GR-2024-001"
-                es-requerido
-                :mensaje-error="formulario.obtenerErrorCampo('numero_guia')"
-                @blur="formulario.marcarCampoComoTocado('numero_guia')"
-              />
-            </div>
-
-            <!-- Tercera fila -->
-            <div class="fila-campos">
-              <CampoEntrada
-                v-model="formulario.formulario.codigo_material"
-                etiqueta="Código del Material"
-                placeholder="Ej: BOGR2062"
-                es-requerido
-                :mensaje-error="formulario.obtenerErrorCampo('codigo_material')"
-                @cambio="buscarMaterial"
-                @blur="formulario.marcarCampoComoTocado('codigo_material')"
-              />
-
-              <CampoEntrada
-                v-model="formulario.formulario.nombre_material"
-                etiqueta="Nombre del Material"
-                placeholder="Se completará automáticamente"
-                solo-lectura
-              />
-            </div>
-
-            <!-- Cuarta fila -->
-            <div class="fila-campos">
-              <CampoEntrada
-                v-model="formulario.formulario.lote"
-                etiqueta="Lote"
-                placeholder="Ej: L2024-001"
-                es-requerido
-                :mensaje-error="formulario.obtenerErrorCampo('lote')"
-                @blur="formulario.marcarCampoComoTocado('lote')"
-              />
-
-              <CampoEntrada
-                v-model="formulario.formulario.temporada"
-                etiqueta="Temporada"
-                tipo="select"
-                :opciones="temporadasDisponibles"
-                es-requerido
-                :mensaje-error="formulario.obtenerErrorCampo('temporada')"
-                @blur="formulario.marcarCampoComoTocado('temporada')"
-              />
-            </div>
-
-            <!-- Quinta fila -->
-            <div class="fila-campos">
-              <CampoEntrada
-                v-model="formulario.formulario.cantidad_recibida"
-                etiqueta="Cantidad Recibida"
-                tipo="number"
-                placeholder="0"
-                es-requerido
-                minimo="0.01"
-                paso="0.01"
-                :mensaje-error="
-                  formulario.obtenerErrorCampo('cantidad_recibida')
-                "
-                @blur="formulario.marcarCampoComoTocado('cantidad_recibida')"
-              />
-
-              <CampoEntrada
-                v-model="formulario.formulario.unidad_medida"
-                etiqueta="Unidad de Medida"
-                tipo="select"
-                :opciones="unidadesMedidaDisponibles"
-                es-requerido
-                :mensaje-error="formulario.obtenerErrorCampo('unidad_medida')"
-                @blur="formulario.marcarCampoComoTocado('unidad_medida')"
-              />
-            </div>
-
-            <!-- Sexta fila -->
-            <div class="fila-campos">
-              <CampoEntrada
-                v-model="formulario.formulario.ubicacion_destino"
-                etiqueta="Ubicación de Destino"
-                tipo="select"
-                :opciones="ubicacionesDisponibles"
-                es-requerido
-                :mensaje-error="
-                  formulario.obtenerErrorCampo('ubicacion_destino')
-                "
-                @blur="formulario.marcarCampoComoTocado('ubicacion_destino')"
-              />
-
-              <CampoEntrada
-                v-model="formulario.formulario.estado"
-                etiqueta="Estado de Recepción"
-                tipo="select"
-                :opciones="estadosDisponibles"
-                es-requerido
-                :mensaje-error="formulario.obtenerErrorCampo('estado')"
-                @blur="formulario.marcarCampoComoTocado('estado')"
-              />
-            </div>
-
-            <!-- Séptima fila -->
-            <div class="fila-campos fila-completa">
-              <CampoEntrada
-                v-model="formulario.formulario.observaciones"
-                etiqueta="Observaciones"
-                tipo="textarea"
-                placeholder="Información adicional sobre la recepción..."
-                :filas="3"
-                texto-ayuda="Opcional: condiciones de la recepción, incidencias, etc."
-              />
-            </div>
-          </div>
-
-          <!-- Errores generales del formulario -->
-          <MensajeEstado
-            v-if="formulario.tieneErrores"
-            tipo="error"
-            :mensaje="formulario.obtenerErroresFormateados()"
-            :visible="formulario.tieneErrores"
-            :puede-ser-cerrado="false"
-          />
-
-          <!-- Botones del formulario -->
-          <div class="botones-formulario">
-            <button
-              type="button"
-              class="boton boton-secundario"
-              @click="cerrarFormulario"
-              :disabled="formulario.cargandoEnvio"
-            >
-              Cancelar
-            </button>
-            <button
-              type="submit"
-              class="boton boton-principal"
-              :disabled="
-                !formulario.formularioValido || formulario.cargandoEnvio
-              "
-            >
-              <span
-                v-if="formulario.cargandoEnvio"
-                class="icono-boton spinner"
-              ></span>
-              <span v-else class="icono-boton">💾</span>
-              {{
-                formulario.cargandoEnvio ? "Guardando..." : "Guardar Recepción"
-              }}
-            </button>
-          </div>
-        </form>
+        <FormularioRecepcionLotes
+          @enviar="manejarEnvioRecepcionLotes"
+          @cancelar="cerrarFormulario"
+        />
       </div>
     </div>
 
@@ -389,7 +296,6 @@
 
 <script setup>
 import { ref, computed, onMounted, watch } from "vue";
-import { usarFormulario } from "@/composables/usarFormulario";
 import { usarPaginacion } from "@/composables/usarPaginacion";
 import { usarExportacionExcel } from "@/composables/usarExportacionExcel";
 import { servicioRecepcionLotes } from "@/servicios/servicioRecepcionLotes";
@@ -397,21 +303,19 @@ import { servicioMantenedores } from "@/servicios/servicioMantenedores";
 import CampoEntrada from "@/componentes/CampoEntrada.vue";
 import MensajeEstado from "@/componentes/MensajeEstado.vue";
 import TablaRecepcionLotes from "@/componentes/tablas/TablaRecepcionLotes.vue";
+import FormularioRecepcionLotes from "@/componentes/formularios/FormularioRecepcionLotes.vue";
 import {
   PLANTAS,
   ESTADOS_OPERACION,
-  TEMPORADAS,
   UNIDADES_MEDIDA,
   MENSAJES,
   obtenerOpcionesSelect,
 } from "@/utilidades/constantes";
 import {
   fechaActualParaInput,
-  fechaHoraActualParaInput,
   filtrarPorTexto,
   ordenarPor,
   filtrarPorRangoFechas,
-  generarId,
 } from "@/utilidades/auxiliares";
 
 // ============== ESTADO REACTIVO ==============
@@ -479,13 +383,85 @@ const recepcionesFiltradas = computed(() => {
       "N/A",
   }));
 
-  // Aplicar filtros si hay texto de filtro
-  if (filtroTexto.value) {
-    const texto = filtroTexto.value.toLowerCase();
+  // Aplicar filtro de búsqueda
+  if (filtros.value.busqueda) {
+    datos = filtrarPorTexto(datos, filtros.value.busqueda, [
+      "numero_recepcion",
+      "guia_sii",
+      "lote",
+      "codigo_qr",
+      "observaciones",
+      "planta",
+      "proveedor_nombre",
+      "material_codigo",
+      "material_nombre",
+      "ubicacion_nombre",
+      "ubicacion_bodega",
+      "usuario_completo",
+    ]);
+  }
+
+  // Aplicar filtro de estado
+  if (filtros.value.estado) {
+    datos = datos.filter((item) => item.estado === filtros.value.estado);
+  }
+
+  // Aplicar filtro de proveedor
+  if (filtros.value.proveedor) {
+    datos = datos.filter(
+      (item) => item.proveedor_nombre === filtros.value.proveedor
+    );
+  }
+
+  // Aplicar filtro de lote
+  if (filtros.value.lote) {
+    const lote = filtros.value.lote.toLowerCase();
+    datos = datos.filter((item) => item.lote?.toLowerCase().includes(lote));
+  }
+
+  // Aplicar filtro de guía SII
+  if (filtros.value.guiaSII) {
+    const guiaSII = filtros.value.guiaSII.toLowerCase();
     datos = datos.filter((item) =>
-      Object.values(item).some((valor) =>
-        String(valor).toLowerCase().includes(texto)
-      )
+      item.guia_sii?.toLowerCase().includes(guiaSII)
+    );
+  }
+
+  // Aplicar filtro de material
+  if (filtros.value.material) {
+    datos = datos.filter(
+      (item) => item.material_nombre === filtros.value.material
+    );
+  }
+
+  // Aplicar filtro de clasificación
+  if (filtros.value.clasificacion) {
+    datos = datos.filter(
+      (item) => item.material_clasificacion === filtros.value.clasificacion
+    );
+  }
+
+  // Aplicar filtro de unidad de medida
+  if (filtros.value.unidadMedida) {
+    datos = datos.filter(
+      (item) => item.material_unidad === filtros.value.unidadMedida
+    );
+  }
+
+  // Aplicar filtro de ubicación destino
+  if (filtros.value.ubicacionDestino) {
+    datos = datos.filter(
+      (item) => item.ubicacion_nombre === filtros.value.ubicacionDestino
+    );
+  }
+
+  // Aplicar filtro de fechas
+  if (filtros.value.fechaDesde || filtros.value.fechaHasta) {
+    datos = filtrarPorRangoFechas(
+      datos,
+      "fecha_recepcion",
+      filtros.value.fechaDesde,
+      filtros.value.fechaHasta
     );
   }
 
@@ -505,7 +481,7 @@ const mensajeExito = ref("");
 const mensajeError = ref("");
 
 // Estado de filtros y ordenamiento
-const filtroTexto = ref("");
+
 const ordenCampo = ref("");
 const ordenDireccion = ref("asc");
 
@@ -517,6 +493,12 @@ const filtros = ref({
   fechaDesde: "",
   fechaHasta: "",
   proveedor: "",
+  lote: "",
+  guiaSII: "",
+  material: "",
+  clasificacion: "",
+  unidadMedida: "",
+  ubicacionDestino: "",
 });
 
 // Paginación
@@ -533,27 +515,44 @@ const {
   obtenerConfiguracionColumnas,
 } = usarExportacionExcel();
 
-// Formulario de recepción
-const formulario = usarFormulario({
-  datosIniciales: {
-    numero_recepcion: "",
-    fecha_recepcion: fechaHoraActualParaInput(),
-    proveedor: "",
-    numero_guia: "",
-    codigo_material: "",
-    nombre_material: "",
-    lote: "",
-    temporada: "R9 2024-2025",
-    cantidad_recibida: 0,
-    unidad_medida: "Unidad",
-    ubicacion_destino: "",
-    estado: "pendiente",
-    observaciones: "",
-    planta: "Rancagua",
-  },
-  tipoValidacion: "recepcionLotes",
-  validarEnTiempoReal: true,
-});
+// Función para manejar el envío del formulario de recepción de lotes
+async function manejarEnvioRecepcionLotes(datosFormulario) {
+  try {
+    cargandoDatos.value = true;
+
+    // Preparar datos para la API
+    const datosEnvio = {
+      numero_recepcion: datosFormulario.numeroRecepcion,
+      fecha_recepcion: datosFormulario.fechaRecepcion,
+      proveedor: datosFormulario.proveedor,
+      numero_guia: datosFormulario.numeroGuia,
+      codigo_material: datosFormulario.codigoMaterial,
+      nombre_material: datosFormulario.nombreMaterial,
+      lote: datosFormulario.lote,
+      temporada: datosFormulario.temporada,
+      cantidad_recibida: parseFloat(datosFormulario.cantidadRecibida),
+      unidad_medida: datosFormulario.unidadMedida,
+      ubicacion_destino: datosFormulario.ubicacionDestino,
+      estado: datosFormulario.estado,
+      observaciones: datosFormulario.observaciones,
+      planta: datosFormulario.planta,
+    };
+
+    // Llamar al servicio de recepción de lotes
+    await servicioRecepcionLotes.crearRecepcion(datosEnvio);
+
+    mensajeExito.value = "Recepción registrada exitosamente";
+    mostrarFormulario.value = false;
+
+    // Recargar datos
+    await cargarRecepciones();
+  } catch (error) {
+    console.error("Error al guardar recepción:", error);
+    mensajeError.value = error.message || "Error al guardar la recepción";
+  } finally {
+    cargandoDatos.value = false;
+  }
+}
 
 // ============== COMPUTED PROPERTIES ==============
 
@@ -562,8 +561,6 @@ const plantasDisponibles = computed(() => obtenerOpcionesSelect(PLANTAS));
 const estadosDisponibles = computed(() =>
   obtenerOpcionesSelect(ESTADOS_OPERACION)
 );
-
-const temporadasDisponibles = computed(() => obtenerOpcionesSelect(TEMPORADAS));
 
 const unidadesMedidaDisponibles = computed(() =>
   obtenerOpcionesSelect(UNIDADES_MEDIDA)
@@ -579,12 +576,38 @@ const proveedoresDisponibles = computed(() => {
   }));
 });
 
-const ubicacionesDisponibles = computed(() => {
+const materialesDisponibles = computed(() => {
+  const materialesUnicos = new Set();
+  recepciones.value.forEach((recepcion) => {
+    if (recepcion.material?.nombre) {
+      materialesUnicos.add(recepcion.material.nombre);
+    }
+  });
+  return Array.from(materialesUnicos).map((material) => ({
+    value: material,
+    label: material,
+  }));
+});
+
+const clasificacionesDisponibles = computed(() => {
+  const clasificacionesUnicas = new Set();
+  recepciones.value.forEach((recepcion) => {
+    if (recepcion.material?.clasificacion) {
+      clasificacionesUnicas.add(recepcion.material.clasificacion);
+    }
+  });
+  return Array.from(clasificacionesUnicas).map((clasificacion) => ({
+    value: clasificacion,
+    label: clasificacion,
+  }));
+});
+
+const ubicacionesDestinoDisponibles = computed(() => {
   if (!Array.isArray(ubicaciones.value)) {
     return [];
   }
   return ubicaciones.value
-    .filter((u) => u.planta === formulario.formulario.planta)
+    .filter((u) => u.planta === filtros.value.planta)
     .map((u) => ({
       value: u.title || u.nombre || u.id,
       label: `${u.title || u.nombre || u.id} (${
@@ -594,7 +617,6 @@ const ubicacionesDisponibles = computed(() => {
 });
 
 const fechaActual = computed(() => fechaActualParaInput());
-const fechaHoraActual = computed(() => fechaHoraActualParaInput());
 
 const tieneActivosFiltros = computed(() => {
   const filtrosActivos = [
@@ -603,9 +625,31 @@ const tieneActivosFiltros = computed(() => {
     filtros.value.fechaDesde,
     filtros.value.fechaHasta,
     filtros.value.proveedor,
+    filtros.value.lote,
+    filtros.value.guiaSII,
+    filtros.value.material,
+    filtros.value.clasificacion,
+    filtros.value.unidadMedida,
+    filtros.value.ubicacionDestino,
   ].filter((filtro) => filtro && filtro.toString().trim() !== "");
 
   return filtrosActivos.length > 0;
+});
+
+const filtrosActivosRecepcion = computed(() => {
+  return [
+    filtros.value.busqueda,
+    filtros.value.estado,
+    filtros.value.fechaDesde,
+    filtros.value.fechaHasta,
+    filtros.value.proveedor,
+    filtros.value.lote,
+    filtros.value.guiaSII,
+    filtros.value.material,
+    filtros.value.clasificacion,
+    filtros.value.unidadMedida,
+    filtros.value.ubicacionDestino,
+  ].filter((filtro) => filtro && filtro.toString().trim() !== "").length;
 });
 
 // columnasTabla eliminada por ESLint cleanup
@@ -623,7 +667,7 @@ async function cargarRecepciones() {
 
     recepciones.value = datos || [];
     aplicarFiltros();
-    mostrarMensajeExito("Recepciones actualizadas correctamente");
+    mensajeExito.value = "Recepciones actualizadas correctamente";
   } catch (error) {
     console.error("Error al cargar recepciones:", error);
     mensajeError.value = error.message || MENSAJES.ERROR_GENERICO;
@@ -652,80 +696,9 @@ async function cargarUbicaciones() {
   }
 }
 
-async function buscarMaterial() {
-  const codigo = formulario.formulario.codigo_material?.trim();
-  if (!codigo || codigo.length < 2) {
-    formulario.formulario.nombre_material = "";
-    return;
-  }
-
-  try {
-    const material = await servicioMantenedores.obtenerMaterialPorCodigo(
-      codigo
-    );
-    if (material) {
-      formulario.formulario.nombre_material = material.nombre_material || "";
-      formulario.formulario.unidad_medida = material.unidad_medida || "Unidad";
-    } else {
-      formulario.formulario.nombre_material = "";
-    }
-  } catch (error) {
-    console.error("Error al buscar material:", error);
-    formulario.formulario.nombre_material = "";
-  }
-}
-
 function aplicarFiltros() {
-  let datos = [...recepciones.value];
-
-  // Aplicar filtro de búsqueda
-  if (filtros.value.busqueda) {
-    datos = filtrarPorTexto(datos, filtros.value.busqueda, [
-      "numero_recepcion",
-      "guia_sii",
-      "lote",
-      "codigo_qr",
-      "observaciones",
-      "planta",
-      // Búsqueda en objetos anidados
-      "proveedor.nombre",
-      "proveedor.title",
-      "material.codigo",
-      "material.nombre",
-      "material.cod_nombre",
-      "ubicacion_destino.title",
-      "ubicacion_destino.bodega",
-      "ubicacion_destino.ubicacion",
-      "usuario.nombre_usuario",
-      "usuario.nombre_completo",
-    ]);
-  }
-
-  // Aplicar filtro de estado
-  if (filtros.value.estado) {
-    datos = datos.filter((item) => item.estado === filtros.value.estado);
-  }
-
-  // Aplicar filtro de proveedor
-  if (filtros.value.proveedor) {
-    datos = datos.filter((item) => {
-      const proveedorNombre =
-        item.proveedor?.nombre || item.proveedor?.title || item.proveedor;
-      return proveedorNombre === filtros.value.proveedor;
-    });
-  }
-
-  // Aplicar filtro de fechas
-  if (filtros.value.fechaDesde || filtros.value.fechaHasta) {
-    filtrarPorRangoFechas(
-      datos,
-      "fecha_recepcion",
-      filtros.value.fechaDesde,
-      filtros.value.fechaHasta
-    );
-  }
-
-  // Los datos se actualizan automáticamente a través del computed
+  // Los filtros se aplican automáticamente a través del computed recepcionesFiltradas
+  // Solo actualizamos la paginación
   paginacion.totalRegistros.value = recepcionesFiltradas.value.length;
   paginacion.paginaActual.value = 1;
 }
@@ -738,36 +711,34 @@ function limpiarFiltros() {
     fechaDesde: "",
     fechaHasta: "",
     proveedor: "",
+    lote: "",
+    guiaSII: "",
+    material: "",
+    clasificacion: "",
+    unidadMedida: "",
+    ubicacionDestino: "",
   };
   aplicarFiltros();
 }
 
 function verDetalleRecepcion(recepcion) {
   // TODO: Implementar modal de detalle
-  mostrarMensajeExito(
-    `Detalle de recepción ${recepcion.numero_recepcion} (en desarrollo)`
-  );
+  mensajeExito.value = `Detalle de recepción ${recepcion.numero_recepcion} (en desarrollo)`;
 }
 
 function editarRecepcion(recepcion) {
   // TODO: Implementar edición
-  mostrarMensajeExito(
-    `Edición de recepción ${recepcion.numero_recepcion} (en desarrollo)`
-  );
+  mensajeExito.value = `Edición de recepción ${recepcion.numero_recepcion} (en desarrollo)`;
 }
 
 function completarRecepcion(recepcion) {
   // TODO: Implementar completado de recepción
-  mostrarMensajeExito(
-    `Completar recepción ${recepcion.numero_recepcion} (en desarrollo)`
-  );
+  mensajeExito.value = `Completar recepción ${recepcion.numero_recepcion} (en desarrollo)`;
 }
 
 function imprimirEtiquetaRecepcion(recepcion) {
   // TODO: Implementar impresión individual
-  mostrarMensajeExito(
-    `Impresión de etiqueta para ${recepcion.numero_recepcion} (en desarrollo)`
-  );
+  mensajeExito.value = `Impresión de etiqueta para ${recepcion.numero_recepcion} (en desarrollo)`;
 }
 
 function imprimirEtiquetas() {
@@ -777,44 +748,11 @@ function imprimirEtiquetas() {
   }
 
   // TODO: Implementar impresión masiva
-  mostrarMensajeExito(
-    `Imprimiendo ${recepcionSeleccionadas.value.length} etiquetas (en desarrollo)`
-  );
-}
-
-async function guardarRecepcion() {
-  const exito = await formulario.manejarEnvio(async (datos) => {
-    // Generar número de recepción si no existe
-    if (!datos.numero_recepcion) {
-      datos.numero_recepcion = `REC-${new Date().getFullYear()}-${generarId(
-        4
-      )}`;
-    }
-
-    return await servicioRecepcionLotes.crearRecepcion(datos);
-  });
-
-  if (exito) {
-    mostrarMensajeExito(MENSAJES.EXITO_CREAR);
-    cerrarFormulario();
-    await cargarRecepciones();
-  }
+  mensajeExito.value = `Imprimiendo ${recepcionSeleccionadas.value.length} etiquetas (en desarrollo)`;
 }
 
 function cerrarFormulario() {
   mostrarFormulario.value = false;
-  formulario.reiniciarFormulario();
-  // Resetear valores por defecto
-  formulario.formulario.fecha_recepcion = fechaHoraActualParaInput();
-  formulario.formulario.planta = filtros.value.planta;
-  formulario.formulario.temporada = "R9 2024-2025";
-  formulario.formulario.estado = "pendiente";
-  formulario.formulario.unidad_medida = "Unidad";
-}
-
-function mostrarMensajeExito(mensaje) {
-  mensajeExito.value = mensaje;
-  mensajeError.value = "";
 }
 
 async function exportarAExcel() {
@@ -834,9 +772,7 @@ async function exportarAExcel() {
       { anchoColumnas: configuracionColumnas }
     );
 
-    mostrarMensajeExito(
-      `Reporte exportado exitosamente: ${resultado.nombreArchivo} (${resultado.registrosExportados} registros)`
-    );
+    mensajeExito.value = `Reporte exportado exitosamente: ${resultado.nombreArchivo} (${resultado.registrosExportados} registros)`;
   } catch (error) {
     console.error("Error al exportar a Excel:", error);
     mensajeError.value = `Error al generar el reporte Excel: ${error.message}`;
@@ -844,14 +780,6 @@ async function exportarAExcel() {
 }
 
 // ============== WATCHERS ==============
-
-watch(
-  () => filtros.value.planta,
-  async (nuevaPlanta) => {
-    formulario.formulario.planta = nuevaPlanta;
-    await cargarRecepciones();
-  }
-);
 
 watch(
   () => [
@@ -878,6 +806,9 @@ onMounted(async () => {
 </script>
 
 <style scoped>
+/* Importar estilos optimizados de filtros */
+@import "../estilos/filtros-optimizados.css";
+
 .vista-recepcion-lotes {
   padding: 1.5rem;
   max-width: 100%;
@@ -996,23 +927,36 @@ onMounted(async () => {
   border: 1px solid #f1f5f9;
 }
 
-.filtros-fila-principal {
-  display: grid;
-  grid-template-columns: 1fr auto auto;
+/* Estilos específicos para VistaRecepcionLotes */
+.indicadores-filtros {
+  display: flex;
+  align-items: center;
   gap: 1rem;
-  align-items: end;
-  margin-bottom: 1rem;
 }
 
-.filtros-fila-secundaria {
-  display: grid;
-  grid-template-columns: auto auto auto auto;
+.grupo-acciones-filtros {
+  display: flex;
+  align-items: center;
   gap: 1rem;
-  align-items: end;
+  justify-content: flex-end;
 }
 
-.boton-limpiar {
-  justify-self: end;
+/* Optimización específica para el layout de recepción lotes */
+.vista-recepcion-lotes .filtros-fila-principal {
+  grid-template-columns: 2.5fr 1fr 1fr;
+}
+
+.vista-recepcion-lotes .filtros-fila-secundaria {
+  grid-template-columns: repeat(3, minmax(140px, 1fr));
+}
+
+.vista-recepcion-lotes .filtros-fila-avanzada {
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+}
+
+.vista-recepcion-lotes .filtros-fila-acciones {
+  justify-content: space-between;
+  align-items: center;
 }
 
 /* Formulario */

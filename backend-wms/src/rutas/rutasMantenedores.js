@@ -112,6 +112,65 @@ router.get("/tipos-movimiento", ControladorMantenedores.obtenerTiposMovimiento);
  */
 router.get("/unidades-medida", ControladorMantenedores.obtenerUnidadesMedida);
 
+/**
+ * @route GET /api/mantenedores/tipos-tarja
+ * @desc Obtiene todos los tipos de tarja únicos
+ * @access Privado
+ */
+router.get("/tipos-tarja", ControladorMantenedores.obtenerTiposTarja);
+
+/**
+ * @route GET /api/mantenedores/tipos-operacion
+ * @desc Obtiene todos los tipos de operación únicos
+ * @access Privado
+ */
+router.get("/tipos-operacion", ControladorMantenedores.obtenerTiposOperacion);
+
+/**
+ * @route GET /api/mantenedores/turnos
+ * @desc Obtiene todos los turnos únicos
+ * @access Privado
+ */
+router.get("/turnos", ControladorMantenedores.obtenerTurnos);
+
+/**
+ * @route GET /api/mantenedores/bodegas
+ * @desc Obtiene todas las bodegas únicas
+ * @access Privado
+ */
+router.get("/bodegas", ControladorMantenedores.obtenerBodegas);
+
+/**
+ * @route GET /api/mantenedores/estados-tarja
+ * @desc Obtiene todos los estados de tarja únicos
+ * @access Privado
+ */
+router.get("/estados-tarja", ControladorMantenedores.obtenerEstadosTarja);
+
+/**
+ * @route GET /api/mantenedores/certificaciones-caa
+ * @desc Obtiene certificaciones CAA predefinidas
+ * @access Privado
+ */
+router.get(
+  "/certificaciones-caa",
+  ControladorMantenedores.obtenerCertificacionesCAA
+);
+
+/**
+ * @route GET /api/mantenedores/prioridades
+ * @desc Obtiene prioridades predefinidas
+ * @access Privado
+ */
+router.get("/prioridades", ControladorMantenedores.obtenerPrioridades);
+
+/**
+ * @route GET /api/mantenedores/roles
+ * @desc Obtiene roles de usuario predefinidos
+ * @access Privado
+ */
+router.get("/roles", ControladorMantenedores.obtenerRoles);
+
 // ========================================
 // RUTAS POST PARA CREAR MANTENEDORES
 // ========================================

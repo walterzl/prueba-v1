@@ -15,6 +15,9 @@ class ControladorInventario {
    */
   static async obtenerInventario(req, res) {
     try {
+      console.log("=== INICIO obtenerInventario ===");
+      console.log("Query params:", req.query);
+
       const {
         planta,
         material_id,
@@ -48,10 +51,15 @@ class ControladorInventario {
         }
       }
 
+      console.log("Filtros construidos:", filtros);
+
       // Calcular offset para paginación
       const offset = (parseInt(pagina) - 1) * parseInt(limite);
+      console.log("Offset:", offset, "Limite:", limite);
 
-      // Obtener inventario con relaciones
+      // Obtener inventario con relaciones usando Prisma directamente
+      console.log("Ejecutando consulta Prisma...");
+
       const [inventario, total] = await Promise.all([
         prisma.inventario.findMany({
           where: filtros,
@@ -80,6 +88,13 @@ class ControladorInventario {
         prisma.inventario.count({ where: filtros }),
       ]);
 
+      console.log(
+        "Consulta exitosa. Registros encontrados:",
+        inventario.length,
+        "Total:",
+        total
+      );
+
       // Formatear datos
       const inventarioFormateado = inventario.map((item) => ({
         id: item.id,
@@ -91,7 +106,7 @@ class ControladorInventario {
         cod_nombre: item.cod_nombre,
         fecha_inventario: item.fecha_inventario,
         pallets: item.pallets || 0,
-        stock: parseFloat(item.stock),
+        stock: parseFloat(item.stock || 0),
         bodega: item.bodega || item.ubicacion_ref?.bodega_deposito,
         ubicacion: item.ubicacion || item.ubicacion_ref?.title,
         lote: item.lote,
@@ -103,24 +118,33 @@ class ControladorInventario {
         ubicacion_completa: item.ubicacion_ref,
       }));
 
+      console.log("Datos formateados exitosamente");
+
+      const respuesta = {
+        inventario: inventarioFormateado,
+        paginacion: {
+          pagina_actual: parseInt(pagina),
+          total_paginas: Math.ceil(total / parseInt(limite)),
+          total_registros: total,
+          registros_por_pagina: parseInt(limite),
+        },
+      };
+
+      console.log("=== FIN obtenerInventario EXITOSO ===");
       return ManejadorRespuestas.exito(
         res,
-        {
-          inventario: inventarioFormateado,
-          paginacion: {
-            pagina_actual: parseInt(pagina),
-            total_paginas: Math.ceil(total / parseInt(limite)),
-            total_registros: total,
-            registros_por_pagina: parseInt(limite),
-          },
-        },
+        respuesta,
         "Inventario obtenido exitosamente"
       );
     } catch (error) {
-      console.error("Error al obtener inventario:", error);
+      console.error("=== ERROR EN obtenerInventario ===");
+      console.error("Error completo:", error);
+      console.error("Stack trace:", error.stack);
+      console.error("Mensaje:", error.message);
+
       return ManejadorRespuestas.error(
         res,
-        "Error al obtener inventario",
+        `Error al obtener inventario: ${error.message}`,
         "ERROR_OBTENER_INVENTARIO"
       );
     }

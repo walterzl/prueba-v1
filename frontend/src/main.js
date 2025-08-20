@@ -1,6 +1,8 @@
 // Importar estilos base y globales
 import "./assets/base.css";
+import "./estilos/base-reducido.css";
 import "./estilos/estilos-globales.css";
+import "./estilos/filtros-optimizados.css";
 
 import { createApp } from "vue";
 import { createPinia } from "pinia";

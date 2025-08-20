@@ -63,78 +63,166 @@
     />
 
     <!-- Filtros de búsqueda -->
-    <div class="seccion-filtros">
+    <div class="seccion-filtros vista-inventario">
       <div class="contenedor-filtros">
+        <!-- Fila Principal: Búsqueda + Planta + Bodega -->
         <div class="filtros-fila-principal">
-          <CampoEntrada
-            v-model="filtros.busqueda"
-            etiqueta="Buscar material"
-            placeholder="Código, nombre del material o lote..."
-            tipo="search"
-            :mostrar-etiqueta="false"
-          />
+          <div class="campo-busqueda-principal">
+            <CampoEntrada
+              v-model="filtros.busqueda"
+              etiqueta="Búsqueda General"
+              placeholder="Código, nombre del material o lote..."
+              tipo="search"
+              :mostrar-etiqueta="true"
+            />
+          </div>
 
-          <CampoEntrada
-            v-model="filtros.planta"
-            etiqueta="Planta"
-            tipo="select"
-            :opciones="plantasDisponibles"
-            :mostrar-etiqueta="false"
-          />
+          <div class="campo-select">
+            <CampoEntrada
+              v-model="filtros.planta"
+              etiqueta="Planta"
+              tipo="select"
+              :opciones="plantasDisponibles"
+              :mostrar-etiqueta="true"
+            />
+          </div>
 
-          <CampoEntrada
-            v-model="filtros.bodega"
-            etiqueta="Bodega"
-            tipo="select"
-            :opciones="bodegasDisponibles"
-            :mostrar-etiqueta="false"
-          />
+          <div class="campo-select">
+            <CampoEntrada
+              v-model="filtros.bodega"
+              etiqueta="Bodega"
+              tipo="select"
+              :opciones="bodegasDisponibles"
+              :mostrar-etiqueta="true"
+            />
+          </div>
         </div>
 
+        <!-- Fila Secundaria: Ubicación + Lote + Condición + Stock Mínimo -->
         <div class="filtros-fila-secundaria">
-          <CampoEntrada
-            v-model="filtros.ubicacion"
-            etiqueta="Ubicación"
-            tipo="select"
-            :opciones="ubicacionesDisponibles"
-            :mostrar-etiqueta="false"
-          />
+          <div class="campo-select">
+            <CampoEntrada
+              v-model="filtros.ubicacion"
+              etiqueta="Ubicación"
+              tipo="select"
+              :opciones="ubicacionesDisponibles"
+              :mostrar-etiqueta="true"
+            />
+          </div>
 
-          <CampoEntrada
-            v-model="filtros.lote"
-            etiqueta="Lote"
-            placeholder="Buscar por lote..."
-            tipo="text"
-          />
+          <div class="campo-texto">
+            <CampoEntrada
+              v-model="filtros.lote"
+              etiqueta="Lote"
+              placeholder="Buscar por lote..."
+              tipo="text"
+              :mostrar-etiqueta="true"
+            />
+          </div>
 
-          <CampoEntrada
-            v-model="filtros.condicionArmado"
-            etiqueta="Condición Armado"
-            tipo="select"
-            :opciones="condicionesArmadoDisponibles"
-            :mostrar-etiqueta="false"
-          />
+          <div class="campo-select">
+            <CampoEntrada
+              v-model="filtros.condicionArmado"
+              etiqueta="Condición Armado"
+              tipo="select"
+              :opciones="condicionesArmadoDisponibles"
+              :mostrar-etiqueta="true"
+            />
+          </div>
 
-          <CampoEntrada
-            v-model="filtros.stockMinimo"
-            etiqueta="Stock mínimo"
-            placeholder="Stock mayor a..."
-            tipo="number"
-            minimo="0"
-            paso="0.01"
-          />
+          <div class="campo-numero">
+            <CampoEntrada
+              v-model="filtros.stockMinimo"
+              etiqueta="Stock Mínimo"
+              placeholder="Stock mayor a..."
+              tipo="number"
+              minimo="0"
+              paso="0.01"
+              :mostrar-etiqueta="true"
+            />
+          </div>
         </div>
 
-        <div class="filtros-fila-tercera">
-          <button
-            type="button"
-            class="boton boton-secundario boton-limpiar"
-            @click="limpiarFiltros"
-            title="Limpiar filtros"
-          >
-            <span class="icono-boton">🗑️</span>
-            Limpiar
-          </button>
+        <!-- Fila Avanzada: Stock Máximo + Unidad + Responsable + Fechas -->
+        <div class="filtros-fila-avanzada">
+          <div class="campo-numero">
+            <CampoEntrada
+              v-model="filtros.stockMaximo"
+              etiqueta="Stock Máximo"
+              placeholder="Stock menor a..."
+              tipo="number"
+              minimo="0"
+              paso="0.01"
+              :mostrar-etiqueta="true"
+            />
+          </div>
+
+          <div class="campo-select">
+            <CampoEntrada
+              v-model="filtros.unidadMedida"
+              etiqueta="Unidad Medida"
+              tipo="select"
+              :opciones="unidadesMedidaDisponibles"
+              :mostrar-etiqueta="true"
+            />
+          </div>
+
+          <div class="campo-texto">
+            <CampoEntrada
+              v-model="filtros.contadoPor"
+              etiqueta="Contado por"
+              placeholder="Buscar por responsable..."
+              tipo="text"
+            />
+          </div>
+
+          <div class="campo-fecha">
+            <CampoEntrada
+              v-model="filtros.fechaInventarioDesde"
+              etiqueta="Fecha desde"
+              tipo="date"
+              :maximo="filtros.fechaInventarioHasta || fechaActual"
+            />
+          </div>
+
+          <div class="campo-fecha">
+            <CampoEntrada
+              v-model="filtros.fechaInventarioHasta"
+              etiqueta="Fecha hasta"
+              tipo="date"
+              :minimo="filtros.fechaInventarioDesde"
+              :maximo="fechaActual"
+            />
+          </div>
+        </div>
+
+        <!-- Fila de Acciones -->
+        <div class="filtros-fila-acciones">
+          <div class="indicadores-filtros">
+            <span
+              v-if="filtrosActivosInventario > 0"
+              class="filtros-activos-badge"
+            >
+              <span class="icono">🔍</span>
+              {{ filtrosActivosInventario }} filtro{{
+                filtrosActivosInventario !== 1 ? "s" : ""
+              }}
+              activo{{ filtrosActivosInventario !== 1 ? "s" : "" }}
+            </span>
+          </div>
+
+          <div class="grupo-acciones-filtros">
+            <button
+              type="button"
+              class="boton boton-secundario boton-limpiar"
+              @click="limpiarFiltros"
+              title="Limpiar todos los filtros"
+              :disabled="filtrosActivosInventario === 0"
+            >
+              <span class="icono-boton">🗑️</span>
+              Limpiar
+            </button>
+          </div>
         </div>
       </div>
     </div>
@@ -144,169 +232,15 @@
       <div class="contenedor-formulario">
         <div class="encabezado-formulario">
           <h2 class="titulo-formulario">Registrar Nuevo Inventario</h2>
-          <button
-            type="button"
-            class="boton-cerrar"
-            @click="cerrarFormulario"
-            :disabled="formulario.cargandoEnvio"
-          >
+          <button type="button" class="boton-cerrar" @click="cerrarFormulario">
             ✕
           </button>
         </div>
 
-        <form @submit.prevent="guardarInventario" class="formulario-inventario">
-          <div class="campos-formulario">
-            <!-- Primera fila -->
-            <div class="fila-campos">
-              <CampoEntrada
-                v-model="formulario.formulario.title"
-                etiqueta="Código del Material"
-                placeholder="Ej: BOGR2062"
-                es-requerido
-                :mensaje-error="formulario.obtenerErrorCampo('title')"
-                @cambio="buscarMaterial"
-                @blur="formulario.marcarCampoComoTocado('title')"
-              />
-
-              <CampoEntrada
-                v-model="formulario.formulario.nombre_material"
-                etiqueta="Nombre del Material"
-                placeholder="Se completará automáticamente"
-                solo-lectura
-              />
-            </div>
-
-            <!-- Segunda fila -->
-            <div class="fila-campos">
-              <CampoEntrada
-                v-model="formulario.formulario.stock"
-                etiqueta="Stock"
-                tipo="number"
-                placeholder="0"
-                es-requerido
-                minimo="0"
-                paso="0.01"
-                :mensaje-error="formulario.obtenerErrorCampo('stock')"
-                @blur="formulario.marcarCampoComoTocado('stock')"
-              />
-
-              <CampoEntrada
-                v-model="formulario.formulario.pallets"
-                etiqueta="Cantidad de Pallets"
-                tipo="number"
-                placeholder="0"
-                es-requerido
-                minimo="0"
-                :mensaje-error="formulario.obtenerErrorCampo('pallets')"
-                @blur="formulario.marcarCampoComoTocado('pallets')"
-              />
-            </div>
-
-            <!-- Tercera fila -->
-            <div class="fila-campos">
-              <CampoEntrada
-                v-model="formulario.formulario.bodega"
-                etiqueta="Bodega"
-                tipo="select"
-                :opciones="bodegasDisponibles"
-                es-requerido
-                :mensaje-error="formulario.obtenerErrorCampo('bodega')"
-                @cambio="cargarUbicacionesPorBodega"
-                @blur="formulario.marcarCampoComoTocado('bodega')"
-              />
-
-              <CampoEntrada
-                v-model="formulario.formulario.ubicacion"
-                etiqueta="Ubicación"
-                tipo="select"
-                :opciones="ubicacionesFiltradas"
-                es-requerido
-                :mensaje-error="formulario.obtenerErrorCampo('ubicacion')"
-                :cargando="cargandoUbicaciones"
-                @blur="formulario.marcarCampoComoTocado('ubicacion')"
-              />
-            </div>
-
-            <!-- Cuarta fila -->
-            <div class="fila-campos">
-              <CampoEntrada
-                v-model="formulario.formulario.lote"
-                etiqueta="Lote"
-                placeholder="Ej: L2024-001"
-                texto-ayuda="Identificador único del lote"
-              />
-
-              <CampoEntrada
-                v-model="formulario.formulario.fecha_inventario"
-                etiqueta="Fecha de Inventario"
-                tipo="date"
-                es-requerido
-                :maximo="fechaActual"
-                :mensaje-error="
-                  formulario.obtenerErrorCampo('fecha_inventario')
-                "
-                @blur="formulario.marcarCampoComoTocado('fecha_inventario')"
-              />
-            </div>
-
-            <!-- Quinta fila -->
-            <div class="fila-campos">
-              <CampoEntrada
-                v-model="formulario.formulario.condicion_armado"
-                etiqueta="Condición de Armado"
-                tipo="select"
-                :opciones="condicionesArmado"
-                texto-ayuda="Estado del material en inventario"
-              />
-
-              <CampoEntrada
-                v-model="formulario.formulario.contado_por"
-                etiqueta="Contado por"
-                placeholder="Nombre de quien realizó el conteo"
-                es-requerido
-                :mensaje-error="formulario.obtenerErrorCampo('contado_por')"
-                @blur="formulario.marcarCampoComoTocado('contado_por')"
-              />
-            </div>
-          </div>
-
-          <!-- Errores generales del formulario -->
-          <MensajeEstado
-            v-if="formulario.tieneErrores"
-            tipo="error"
-            :mensaje="formulario.obtenerErroresFormateados()"
-            :visible="formulario.tieneErrores"
-            :puede-ser-cerrado="false"
-          />
-
-          <!-- Botones del formulario -->
-          <div class="botones-formulario">
-            <button
-              type="button"
-              class="boton boton-secundario"
-              @click="cerrarFormulario"
-              :disabled="formulario.cargandoEnvio"
-            >
-              Cancelar
-            </button>
-            <button
-              type="submit"
-              class="boton boton-principal"
-              :disabled="
-                !formulario.formularioValido || formulario.cargandoEnvio
-              "
-            >
-              <span
-                v-if="formulario.cargandoEnvio"
-                class="icono-boton spinner"
-              ></span>
-              <span v-else class="icono-boton">💾</span>
-              {{
-                formulario.cargandoEnvio ? "Guardando..." : "Guardar Inventario"
-              }}
-            </button>
-          </div>
-        </form>
+        <FormularioInventario
+          @enviar="manejarEnvioInventario"
+          @cancelar="cerrarFormulario"
+        />
       </div>
     </div>
 
@@ -339,7 +273,6 @@
 
 <script setup>
 import { ref, computed, onMounted, watch } from "vue";
-import { usarFormulario } from "@/composables/usarFormulario";
 import { usarPaginacion } from "@/composables/usarPaginacion";
 import { usarExportacionExcel } from "@/composables/usarExportacionExcel";
 import { servicioInventario } from "@/servicios/servicioInventario";
@@ -347,10 +280,10 @@ import { servicioMantenedores } from "@/servicios/servicioMantenedores";
 import CampoEntrada from "@/componentes/CampoEntrada.vue";
 import MensajeEstado from "@/componentes/MensajeEstado.vue";
 import TablaInventario from "@/componentes/tablas/TablaInventario.vue";
+import FormularioInventario from "@/componentes/formularios/FormularioInventario.vue";
 import {
   PLANTAS,
   CONDICIONES_ARMADO,
-  MENSAJES,
   obtenerOpcionesSelect,
 } from "@/utilidades/constantes";
 import { fechaActualParaInput } from "@/utilidades/auxiliares";
@@ -365,20 +298,24 @@ const inventarioFiltrado = ref([]);
 // Estado de UI
 const mostrarFormulario = ref(false);
 const cargandoDatos = ref(false);
-const cargandoUbicaciones = ref(false);
 const mensajeExito = ref("");
 const mensajeError = ref("");
 
 // Filtros
 // Filtros basados en campos reales de la API de inventario
 const filtros = ref({
-  busqueda: "", // Busca en codigo_material, nombre_material, lote
+  busqueda: "", // Busca en codigo_material, nombre_material, lote, contado_por
   planta: "Rancagua", // Campo real: planta
   bodega: "", // Campo real: bodega
   ubicacion: "", // Campo real: ubicacion
   lote: "", // Campo real: lote
   condicionArmado: "", // Campo real: condicion_armado
   stockMinimo: "", // Filtro para stock > valor
+  stockMaximo: "", // Filtro para stock < valor
+  fechaInventarioDesde: "", // Campo real: fecha_inventario (desde)
+  fechaInventarioHasta: "", // Campo real: fecha_inventario (hasta)
+  unidadMedida: "", // Campo real: unidad_medida
+  contadoPor: "", // Campo real: contado_por
 });
 
 // Paginación
@@ -395,32 +332,58 @@ const {
   obtenerConfiguracionColumnas,
 } = usarExportacionExcel();
 
-// Formulario de inventario
-const formulario = usarFormulario({
-  datosIniciales: {
-    title: "",
-    nombre_material: "",
-    stock: 0,
-    pallets: 0,
-    bodega: "",
-    ubicacion: "",
-    lote: "",
-    fecha_inventario: fechaActualParaInput(),
-    condicion_armado: "No Aplica",
-    contado_por: "",
-    planta: "Rancagua",
-  },
-  tipoValidacion: "inventario",
-  validarEnTiempoReal: true,
-});
+// Función para manejar el envío del formulario de inventario
+async function manejarEnvioInventario(datosFormulario) {
+  try {
+    cargandoDatos.value = true;
+
+    // Preparar datos para la API
+    const datosEnvio = {
+      codigo_material: datosFormulario.codigoMaterial,
+      nombre_material: datosFormulario.nombreMaterial,
+      stock: parseFloat(datosFormulario.stock),
+      pallets: parseInt(datosFormulario.pallets) || 0,
+      bodega: datosFormulario.bodega,
+      ubicacion: datosFormulario.ubicacion,
+      lote: datosFormulario.lote,
+      fecha_inventario: datosFormulario.fechaInventario,
+      condicion_armado: datosFormulario.condicionArmado,
+      contado_por: datosFormulario.contadoPor,
+      planta: datosFormulario.planta,
+    };
+
+    // Llamar al servicio de inventario
+    await servicioInventario.crearInventario(datosEnvio);
+
+    mensajeExito.value = "Inventario registrado exitosamente";
+    mostrarFormulario.value = false;
+
+    // Recargar datos
+    await cargarInventario();
+  } catch (error) {
+    console.error("Error al guardar inventario:", error);
+    mensajeError.value = error.message || "Error al guardar el inventario";
+  } finally {
+    cargandoDatos.value = false;
+  }
+}
 
 // ============== COMPUTED PROPERTIES ==============
 
 const plantasDisponibles = computed(() => obtenerOpcionesSelect(PLANTAS));
 
-const condicionesArmado = computed(() =>
-  obtenerOpcionesSelect(CONDICIONES_ARMADO)
-);
+const unidadesMedidaDisponibles = computed(() => {
+  const unidadesUnicas = [
+    ...new Set(
+      inventario.value.map((item) => item.unidad_medida).filter(Boolean)
+    ),
+  ];
+
+  return unidadesUnicas.map((unidad) => ({
+    value: unidad,
+    label: unidad,
+  }));
+});
 
 const bodegasDisponibles = computed(() => {
   const bodegasUnicas = [
@@ -462,19 +425,6 @@ const condicionesArmadoDisponibles = computed(() =>
   obtenerOpcionesSelect(CONDICIONES_ARMADO)
 );
 
-const ubicacionesFiltradas = computed(() => {
-  return ubicaciones.value
-    .filter(
-      (u) =>
-        u.planta === formulario.formulario.planta &&
-        u.bodega_deposito === formulario.formulario.bodega
-    )
-    .map((u) => ({
-      value: u.title,
-      label: u.title,
-    }));
-});
-
 const fechaActual = computed(() => fechaActualParaInput());
 
 const tieneActivosFiltros = computed(() => {
@@ -485,9 +435,30 @@ const tieneActivosFiltros = computed(() => {
     filtros.value.lote,
     filtros.value.condicionArmado,
     filtros.value.stockMinimo,
+    filtros.value.stockMaximo,
+    filtros.value.fechaInventarioDesde,
+    filtros.value.fechaInventarioHasta,
+    filtros.value.unidadMedida,
+    filtros.value.contadoPor,
   ].filter((filtro) => filtro && filtro.toString().trim() !== "");
 
   return filtrosActivos.length > 0;
+});
+
+const filtrosActivosInventario = computed(() => {
+  return [
+    filtros.value.busqueda,
+    filtros.value.bodega,
+    filtros.value.ubicacion,
+    filtros.value.lote,
+    filtros.value.condicionArmado,
+    filtros.value.stockMinimo,
+    filtros.value.stockMaximo,
+    filtros.value.fechaInventarioDesde,
+    filtros.value.fechaInventarioHasta,
+    filtros.value.unidadMedida,
+    filtros.value.contadoPor,
+  ].filter((filtro) => filtro && filtro.toString().trim() !== "").length;
 });
 
 // ============== MÉTODOS ==============
@@ -532,9 +503,7 @@ async function cargarInventario() {
     const datosNormalizados = normalizarDatosInventario(datos || []);
     inventario.value = datosNormalizados;
     aplicarFiltros();
-    mostrarMensajeExito(
-      `Inventario cargado: ${datosNormalizados.length} registros`
-    );
+    mensajeExito.value = `Inventario cargado: ${datosNormalizados.length} registros`;
   } catch (error) {
     console.error("Error al cargar inventario:", error);
     mensajeError.value = error.message || "Error al cargar el inventario";
@@ -553,33 +522,6 @@ async function cargarUbicaciones() {
   }
 }
 
-async function buscarMaterial() {
-  const codigo = formulario.formulario.title?.trim();
-  if (!codigo || codigo.length < 2) {
-    formulario.formulario.nombre_material = "";
-    return;
-  }
-
-  try {
-    const material = await servicioMantenedores.obtenerMaterialPorCodigo(
-      codigo
-    );
-    if (material) {
-      formulario.formulario.nombre_material = material.nombre_material || "";
-    } else {
-      formulario.formulario.nombre_material = "";
-    }
-  } catch (error) {
-    console.error("Error al buscar material:", error);
-    formulario.formulario.nombre_material = "";
-  }
-}
-
-async function cargarUbicacionesPorBodega() {
-  // Este método se ejecuta cuando cambia la bodega seleccionada
-  formulario.formulario.ubicacion = ""; // Limpiar ubicación
-}
-
 function aplicarFiltros() {
   let datos = [...inventario.value];
 
@@ -590,6 +532,7 @@ function aplicarFiltros() {
       return (
         item.codigo_material?.toLowerCase().includes(busqueda) ||
         item.nombre_material?.toLowerCase().includes(busqueda) ||
+        item.cod_nombre?.toLowerCase().includes(busqueda) ||
         item.lote?.toLowerCase().includes(busqueda) ||
         item.contado_por?.toLowerCase().includes(busqueda)
       );
@@ -628,6 +571,47 @@ function aplicarFiltros() {
     datos = datos.filter((item) => parseFloat(item.stock) >= stockMin);
   }
 
+  // Aplicar filtro de stock máximo (campo real)
+  if (
+    filtros.value.stockMaximo &&
+    !isNaN(parseFloat(filtros.value.stockMaximo))
+  ) {
+    const stockMax = parseFloat(filtros.value.stockMaximo);
+    datos = datos.filter((item) => parseFloat(item.stock) <= stockMax);
+  }
+
+  // Aplicar filtro de unidad de medida (campo real)
+  if (filtros.value.unidadMedida) {
+    datos = datos.filter(
+      (item) => item.unidad_medida === filtros.value.unidadMedida
+    );
+  }
+
+  // Aplicar filtro de contado por (campo real)
+  if (filtros.value.contadoPor) {
+    const contadoPor = filtros.value.contadoPor.toLowerCase();
+    datos = datos.filter((item) =>
+      item.contado_por?.toLowerCase().includes(contadoPor)
+    );
+  }
+
+  // Aplicar filtro de fechas de inventario (campo real)
+  if (
+    filtros.value.fechaInventarioDesde ||
+    filtros.value.fechaInventarioHasta
+  ) {
+    datos = datos.filter((item) => {
+      const fechaItem = new Date(item.fecha_inventario);
+      const cumpleFechaDesde =
+        !filtros.value.fechaInventarioDesde ||
+        fechaItem >= new Date(filtros.value.fechaInventarioDesde);
+      const cumpleFechaHasta =
+        !filtros.value.fechaInventarioHasta ||
+        fechaItem <= new Date(filtros.value.fechaInventarioHasta);
+      return cumpleFechaDesde && cumpleFechaHasta;
+    });
+  }
+
   inventarioFiltrado.value = datos;
   paginacion.totalRegistros.value = datos.length;
   paginacion.paginaActual.value = 1; // Resetear a primera página
@@ -642,34 +626,17 @@ function limpiarFiltros() {
     lote: "",
     condicionArmado: "",
     stockMinimo: "",
+    stockMaximo: "",
+    fechaInventarioDesde: "",
+    fechaInventarioHasta: "",
+    unidadMedida: "",
+    contadoPor: "",
   };
   aplicarFiltros();
 }
 
-async function guardarInventario() {
-  const exito = await formulario.manejarEnvio(async (datos) => {
-    return await servicioInventario.crearRegistroInventario(datos);
-  });
-
-  if (exito) {
-    mostrarMensajeExito(MENSAJES.EXITO_CREAR);
-    cerrarFormulario();
-    await cargarInventario();
-  }
-}
-
 function cerrarFormulario() {
   mostrarFormulario.value = false;
-  formulario.reiniciarFormulario();
-  // Resetear valores por defecto
-  formulario.formulario.fecha_inventario = fechaActualParaInput();
-  formulario.formulario.planta = filtros.value.planta;
-  formulario.formulario.condicion_armado = "No Aplica";
-}
-
-function mostrarMensajeExito(mensaje) {
-  mensajeExito.value = mensaje;
-  mensajeError.value = "";
 }
 
 async function exportarAExcel() {
@@ -689,9 +656,7 @@ async function exportarAExcel() {
       { anchoColumnas: configuracionColumnas }
     );
 
-    mostrarMensajeExito(
-      `Reporte exportado exitosamente: ${resultado.nombreArchivo} (${resultado.registrosExportados} registros)`
-    );
+    mensajeExito.value = `Reporte exportado exitosamente: ${resultado.nombreArchivo} (${resultado.registrosExportados} registros)`;
   } catch (error) {
     console.error("Error al exportar a Excel:", error);
     mensajeError.value = `Error al generar el reporte Excel: ${error.message}`;
@@ -701,41 +666,25 @@ async function exportarAExcel() {
 // Métodos específicos para la tabla de inventario
 function realizarConteo(item) {
   // TODO: Implementar modal de conteo
-  mostrarMensajeExito(
-    `Conteo de ${item.codigo_material} iniciado (funcionalidad en desarrollo)`
-  );
+  mensajeExito.value = `Conteo de ${item.codigo_material} iniciado (funcionalidad en desarrollo)`;
 }
 
 function ajustarStock(item) {
   // TODO: Implementar modal de ajuste de stock
-  mostrarMensajeExito(
-    `Ajuste de stock para ${item.codigo_material} (funcionalidad en desarrollo)`
-  );
+  mensajeExito.value = `Ajuste de stock para ${item.codigo_material} (funcionalidad en desarrollo)`;
 }
 
 function verHistorialInventario(item) {
   // TODO: Implementar modal de historial
-  mostrarMensajeExito(
-    `Historial de ${item.codigo_material} (funcionalidad en desarrollo)`
-  );
+  mensajeExito.value = `Historial de ${item.codigo_material} (funcionalidad en desarrollo)`;
 }
 
 function imprimirEtiquetaInventario(item) {
   // TODO: Implementar impresión de etiquetas
-  mostrarMensajeExito(
-    `Impresión de etiqueta para ${item.codigo_material} (funcionalidad en desarrollo)`
-  );
+  mensajeExito.value = `Impresión de etiqueta para ${item.codigo_material} (funcionalidad en desarrollo)`;
 }
 
 // ============== WATCHERS ==============
-
-watch(
-  () => filtros.value.planta,
-  async (nuevaPlanta) => {
-    formulario.formulario.planta = nuevaPlanta;
-    await cargarInventario();
-  }
-);
 
 watch(
   () => [
@@ -745,6 +694,11 @@ watch(
     filtros.value.lote,
     filtros.value.condicionArmado,
     filtros.value.stockMinimo,
+    filtros.value.stockMaximo,
+    filtros.value.fechaInventarioDesde,
+    filtros.value.fechaInventarioHasta,
+    filtros.value.unidadMedida,
+    filtros.value.contadoPor,
   ],
   () => {
     aplicarFiltros();
@@ -759,6 +713,9 @@ onMounted(async () => {
 </script>
 
 <style scoped>
+/* Importar estilos optimizados de filtros */
+@import "../estilos/filtros-optimizados.css";
+
 .vista-inventario {
   padding: 1.5rem;
   max-width: 100%;
@@ -878,33 +835,41 @@ onMounted(async () => {
   border: 1px solid #f1f5f9;
 }
 
-.contenedor-filtros {
-  max-width: 100%;
-}
-
-.filtros-fila-principal {
-  display: grid;
-  grid-template-columns: 1fr auto auto;
-  gap: 1rem;
-  align-items: end;
-  margin-bottom: 1rem;
-}
-
-.filtros-fila-secundaria {
-  display: grid;
-  grid-template-columns: auto auto auto auto;
-  gap: 1rem;
-  align-items: end;
-  margin-bottom: 1rem;
-}
-
-.filtros-fila-tercera {
+/* Estilos específicos para VistaInventario */
+.indicadores-filtros {
   display: flex;
-  justify-content: flex-end;
+  align-items: center;
   gap: 1rem;
-  align-items: end;
-  padding-top: 1rem;
-  border-top: 1px solid #f1f5f9;
+}
+
+.grupo-acciones-filtros {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  justify-content: flex-end;
+}
+
+.campo-numero {
+  min-width: 120px;
+  max-width: 160px;
+}
+
+/* Optimización específica para el layout de inventario */
+.vista-inventario .filtros-fila-principal {
+  grid-template-columns: 2.5fr 1fr 1fr;
+}
+
+.vista-inventario .filtros-fila-secundaria {
+  grid-template-columns: repeat(4, minmax(140px, 1fr));
+}
+
+.vista-inventario .filtros-fila-avanzada {
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+}
+
+.vista-inventario .filtros-fila-acciones {
+  justify-content: space-between;
+  align-items: center;
 }
 
 /* Formulario */

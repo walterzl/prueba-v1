@@ -214,28 +214,29 @@ function formatearValor(valor, columna) {
 
 .estado-vacio {
   text-align: center;
-  padding: 4rem 2rem;
+  padding: 2.4rem 1.2rem;
   color: #6b7280;
 }
 
 .icono-vacio {
-  font-size: 4rem;
-  margin-bottom: 1.5rem;
+  font-size: 2.4rem;
+  margin-bottom: 0.9rem;
   opacity: 0.5;
 }
 
 .estado-vacio h3 {
-  font-size: 1.25rem;
+  font-size: 0.75rem;
   font-weight: 600;
   color: #374151;
-  margin: 0 0 0.5rem 0;
+  margin: 0 0 0.3rem 0;
 }
 
 .estado-vacio p {
-  margin: 0 0 2rem 0;
-  max-width: 400px;
+  margin: 0 0 1.2rem 0;
+  max-width: 240px;
   margin-left: auto;
   margin-right: auto;
   line-height: 1.6;
+  font-size: 0.6rem;
 }
 </style>

@@ -28,6 +28,7 @@ const rutasRecepcionesLotes = require("./rutas/rutasRecepcionesLotes");
 const rutasStockUbicaciones = require("./rutas/rutasStockUbicaciones");
 const rutasTarjas = require("./rutas/rutasTarjas");
 const rutasEventos = require("./rutas/rutasEventos");
+const rutasConsultasAnidadas = require("./rutas/rutasConsultasAnidadas");
 
 /**
  * Clase principal del servidor Express
@@ -162,6 +163,7 @@ class Servidor {
           stockUbicaciones: "/api/stock-ubicaciones",
           tarjas: "/api/tarjas",
           eventos: "/api/eventos",
+          camposAnidados: "/api/campos-anidados",
         },
       });
     });
@@ -209,6 +211,7 @@ class Servidor {
 
     // Rutas protegidas (requieren autenticación)
     this.app.use("/api/mantenedores", rutasMantenedores);
+    this.app.use("/api/campos-anidados", rutasConsultasAnidadas);
     this.app.use("/api/trazabilidad", rutasTrazabilidad);
     this.app.use("/api/inventario", rutasInventario);
     this.app.use("/api/usuarios", rutasUsuarios);

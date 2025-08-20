@@ -1,326 +1,337 @@
-import { ref, reactive, computed, readonly } from "vue";
-import {
-  validarDatos,
-  formatearErroresValidacion,
-} from "@/utilidades/validaciones";
+import { ref, computed, watch } from "vue";
 
 /**
- * Composable para manejar formularios con validación y estado
- * Proporciona funcionalidades comunes para todos los formularios del sistema
+ * Composable para manejo de formularios
+ * Proporciona estado, validaciones y métodos para formularios
  */
 export function usarFormulario(configuracion = {}) {
-  const {
-    datosIniciales = {},
-    tipoValidacion = null,
-    funcionValidacionPersonalizada = null,
-    validarEnTiempoReal = true,
-  } = configuracion;
+  // Estado del formulario
+  const datos = ref({ ...configuracion.datosIniciales });
+  const errores = ref({});
+  const enviando = ref(false);
+  const modificado = ref(false);
+  const mensajeExito = ref("");
+  const mensajeError = ref("");
 
-  // Estado reactivo del formulario
-  const formulario = reactive({ ...datosIniciales });
-  const erroresCampos = ref({});
-  const erroresGenerales = ref([]);
-  const cargandoEnvio = ref(false);
-  const tocado = ref(new Set()); // Campos que han sido tocados por el usuario
+  // Configuración
+  const validaciones = configuracion.validaciones || {};
+  const transformarDatos = configuracion.transformarDatos || ((d) => d);
+  const validarAntesEnvio = configuracion.validarAntesEnvio || (() => true);
 
-  // Estado computado
-  const tieneErrores = computed(() => {
-    return (
-      Object.keys(erroresCampos.value).length > 0 ||
-      erroresGenerales.value.length > 0
-    );
-  });
-
+  // Computed
   const formularioValido = computed(() => {
-    return !tieneErrores.value;
+    return Object.keys(errores.value).length === 0;
   });
 
-  const todosLosCamposTocados = computed(() => {
-    const camposFormulario = Object.keys(datosIniciales);
-    return camposFormulario.every((campo) => tocado.value.has(campo));
+  const hayCambios = computed(() => {
+    return modificado.value;
   });
 
-  // ============== MÉTODOS PRINCIPALES ==============
+  // Métodos de validación
+  function validarCampo(nombre, valor) {
+    const validacion = validaciones[nombre];
+    if (!validacion) return null;
 
-  /**
-   * Reinicia el formulario a sus valores iniciales
-   */
-  function reiniciarFormulario() {
-    Object.keys(formulario).forEach((clave) => {
-      formulario[clave] = datosIniciales[clave] ?? "";
-    });
-    limpiarErrores();
-    tocado.value.clear();
+    // Validación requerida
+    if (validacion.requerido && (!valor || valor.toString().trim() === "")) {
+      return validacion.mensajeRequerido || "Este campo es requerido";
+    }
+
+    // Validación de longitud mínima
+    if (
+      validacion.minLength &&
+      valor &&
+      valor.toString().length < validacion.minLength
+    ) {
+      return (
+        validacion.mensajeMinLength ||
+        `Mínimo ${validacion.minLength} caracteres`
+      );
+    }
+
+    // Validación de longitud máxima
+    if (
+      validacion.maxLength &&
+      valor &&
+      valor.toString().length > validacion.maxLength
+    ) {
+      return (
+        validacion.mensajeMaxLength ||
+        `Máximo ${validacion.maxLength} caracteres`
+      );
+    }
+
+    // Validación de patrón
+    if (
+      validacion.patron &&
+      valor &&
+      !validacion.patron.test(valor.toString())
+    ) {
+      return validacion.mensajePatron || "Formato inválido";
+    }
+
+    // Validación numérica
+    if (validacion.tipo === "numero") {
+      const numero = Number(valor);
+      if (isNaN(numero)) {
+        return validacion.mensajeNumero || "Debe ser un número válido";
+      }
+      if (validacion.min !== undefined && numero < validacion.min) {
+        return validacion.mensajeMin || `Mínimo ${validacion.min}`;
+      }
+      if (validacion.max !== undefined && numero > validacion.max) {
+        return validacion.mensajeMax || `Máximo ${validacion.max}`;
+      }
+    }
+
+    // Validación de fecha
+    if (validacion.tipo === "fecha") {
+      const fecha = new Date(valor);
+      if (isNaN(fecha.getTime())) {
+        return validacion.mensajeFecha || "Fecha inválida";
+      }
+      if (validacion.noFutura && fecha > new Date()) {
+        return validacion.mensajeNoFutura || "La fecha no puede ser futura";
+      }
+    }
+
+    // Validación personalizada
+    if (validacion.validar && typeof validacion.validar === "function") {
+      const resultado = validacion.validar(valor, datos.value);
+      if (resultado !== true) {
+        return resultado;
+      }
+    }
+
+    return null;
   }
 
-  /**
-   * Valida todo el formulario
-   */
   function validarFormulario() {
-    limpiarErrores();
+    const nuevosErrores = {};
 
-    try {
-      let erroresValidacion = [];
-
-      // Usar validación por tipo si está especificada
-      if (tipoValidacion) {
-        erroresValidacion = validarDatos(formulario, tipoValidacion);
+    Object.keys(validaciones).forEach((nombre) => {
+      const error = validarCampo(nombre, datos.value[nombre]);
+      if (error) {
+        nuevosErrores[nombre] = error;
       }
-      // Usar función de validación personalizada
-      else if (funcionValidacionPersonalizada) {
-        erroresValidacion = funcionValidacionPersonalizada(formulario);
-      }
+    });
 
-      // Procesar errores
-      if (erroresValidacion && erroresValidacion.length > 0) {
-        erroresGenerales.value = erroresValidacion;
-        return false;
-      }
+    errores.value = nuevosErrores;
+    return Object.keys(nuevosErrores).length === 0;
+  }
 
-      return true;
-    } catch (error) {
-      console.error("Error en validación:", error);
-      erroresGenerales.value = ["Error en la validación del formulario"];
-      return false;
+  // Métodos de manejo de datos
+  function actualizarCampo(nombre, valor) {
+    datos.value[nombre] = valor;
+    modificado.value = true;
+
+    // Validar campo individual
+    const error = validarCampo(nombre, valor);
+    if (error) {
+      errores.value[nombre] = error;
+    } else {
+      delete errores.value[nombre];
     }
   }
 
-  /**
-   * Valida un campo específico
-   */
-  function validarCampo(nombreCampo) {
-    if (!validarEnTiempoReal) return;
-
-    // Solo validar si el campo ha sido tocado
-    if (!tocado.value.has(nombreCampo)) return;
-
-    try {
-      // Para validación de campo individual, creamos un objeto temporal
-      // solo con el campo a validar y ejecutamos validación completa
-      const formularioTemporal = { ...formulario };
-
-      let erroresValidacion = [];
-      if (tipoValidacion) {
-        erroresValidacion = validarDatos(formularioTemporal, tipoValidacion);
-      } else if (funcionValidacionPersonalizada) {
-        erroresValidacion = funcionValidacionPersonalizada(formularioTemporal);
-      }
-
-      // Limpiar error previo del campo
-      if (erroresCampos.value[nombreCampo]) {
-        delete erroresCampos.value[nombreCampo];
-      }
-
-      // Si hay errores, buscar los relacionados con este campo
-      if (erroresValidacion.length > 0) {
-        const errorDelCampo = erroresValidacion.find((error) =>
-          error.toLowerCase().includes(nombreCampo.toLowerCase())
-        );
-        if (errorDelCampo) {
-          erroresCampos.value[nombreCampo] = errorDelCampo;
-        }
-      }
-    } catch (error) {
-      console.error(`Error validando campo ${nombreCampo}:`, error);
-    }
+  function actualizarMultiplesCampos(campos) {
+    Object.entries(campos).forEach(([nombre, valor]) => {
+      actualizarCampo(nombre, valor);
+    });
   }
 
-  /**
-   * Maneja el envío del formulario
-   */
-  async function manejarEnvio(funcionEnvio, opciones = {}) {
-    const {
-      mostrarConfirmacion = false,
-      mensajeConfirmacion = "¿Está seguro que desea guardar los cambios?",
-    } = opciones;
+  function obtenerCampo(nombre) {
+    return datos.value[nombre];
+  }
 
-    // Mostrar confirmación si se solicita
-    if (mostrarConfirmacion) {
-      const confirmado = confirm(mensajeConfirmacion);
-      if (!confirmado) return false;
-    }
+  function obtenerDatos() {
+    return { ...datos.value };
+  }
 
-    // Validar formulario antes del envío
+  // Métodos de estado
+  function mostrarExito(mensaje) {
+    mensajeExito.value = mensaje;
+    mensajeError.value = "";
+  }
+
+  function mostrarError(mensaje) {
+    mensajeError.value = mensaje;
+    mensajeExito.value = "";
+  }
+
+  function limpiarMensajes() {
+    mensajeExito.value = "";
+    mensajeError.value = "";
+  }
+
+  function limpiarErrores() {
+    errores.value = {};
+  }
+
+  function limpiarFormulario() {
+    datos.value = { ...configuracion.datosIniciales };
+    errores.value = {};
+    modificado.value = false;
+    limpiarMensajes();
+  }
+
+  function resetearFormulario() {
+    limpiarFormulario();
+  }
+
+  // Métodos de envío
+  async function enviarFormulario(callback) {
     if (!validarFormulario()) {
       return false;
     }
 
-    cargandoEnvio.value = true;
-    limpiarErrores();
+    if (!validarAntesEnvio()) {
+      return false;
+    }
+
+    enviando.value = true;
+    limpiarMensajes();
 
     try {
-      const resultado = await funcionEnvio({ ...formulario });
+      const datosTransformados = transformarDatos(datos.value);
+      const resultado = await callback(datosTransformados);
+
+      mostrarExito("Datos guardados correctamente");
+      modificado.value = false;
+
       return resultado;
     } catch (error) {
-      const mensajeError = error.message || "Error al procesar el formulario";
-      erroresGenerales.value = [mensajeError];
-      console.error("Error en envío de formulario:", error);
+      const mensaje = error.message || "Error al procesar el formulario";
+      mostrarError(mensaje);
       return false;
     } finally {
-      cargandoEnvio.value = false;
+      enviando.value = false;
     }
   }
 
-  // ============== MÉTODOS DE MANIPULACIÓN DE DATOS ==============
-
-  /**
-   * Actualiza un campo específico del formulario
-   */
-  function actualizarCampo(nombreCampo, valor) {
-    formulario[nombreCampo] = valor;
-    marcarCampoComoTocado(nombreCampo);
-
-    // Validar campo en tiempo real si está habilitado
-    if (validarEnTiempoReal) {
-      setTimeout(() => validarCampo(nombreCampo), 300); // Debounce de 300ms
-    }
+  // Métodos de utilidad
+  function marcarComoModificado() {
+    modificado.value = true;
   }
 
-  /**
-   * Actualiza múltiples campos a la vez
-   */
-  function actualizarCampos(nuevosDatos) {
-    Object.entries(nuevosDatos).forEach(([campo, valor]) => {
-      actualizarCampo(campo, valor);
-    });
+  function obtenerErrores() {
+    return { ...errores.value };
   }
 
-  /**
-   * Obtiene el valor de un campo
-   */
-  function obtenerValorCampo(nombreCampo) {
-    return formulario[nombreCampo];
+  function tieneError(nombre) {
+    return Boolean(errores.value[nombre]);
   }
 
-  /**
-   * Marca un campo como tocado por el usuario
-   */
-  function marcarCampoComoTocado(nombreCampo) {
-    tocado.value.add(nombreCampo);
+  function obtenerError(nombre) {
+    return errores.value[nombre] || "";
   }
 
-  // ============== MÉTODOS DE GESTIÓN DE ERRORES ==============
+  // Watchers
+  watch(
+    datos,
+    () => {
+      modificado.value = true;
+    },
+    { deep: true }
+  );
 
-  /**
-   * Limpia todos los errores
-   */
-  function limpiarErrores() {
-    erroresCampos.value = {};
-    erroresGenerales.value = [];
-  }
-
-  /**
-   * Limpia el error de un campo específico
-   */
-  function limpiarErrorCampo(nombreCampo) {
-    if (erroresCampos.value[nombreCampo]) {
-      delete erroresCampos.value[nombreCampo];
-    }
-  }
-
-  /**
-   * Agrega un error personalizado
-   */
-  function agregarError(mensaje, nombreCampo = null) {
-    if (nombreCampo) {
-      erroresCampos.value[nombreCampo] = mensaje;
-    } else {
-      erroresGenerales.value.push(mensaje);
-    }
-  }
-
-  /**
-   * Obtiene el mensaje de error para un campo específico
-   */
-  function obtenerErrorCampo(nombreCampo) {
-    return erroresCampos.value[nombreCampo] || null;
-  }
-
-  /**
-   * Obtiene todos los errores formateados para mostrar al usuario
-   */
-  function obtenerErroresFormateados() {
-    const errores = [...erroresGenerales.value];
-
-    // Agregar errores de campos
-    Object.values(erroresCampos.value).forEach((error) => {
-      if (!errores.includes(error)) {
-        errores.push(error);
-      }
-    });
-
-    return formatearErroresValidacion(errores);
-  }
-
-  // ============== MÉTODOS DE UTILIDAD ==============
-
-  /**
-   * Establece valores por defecto para campos vacíos
-   */
-  function establecerValoresPorDefecto(valoresPorDefecto) {
-    Object.entries(valoresPorDefecto).forEach(([campo, valor]) => {
-      if (!formulario[campo] || formulario[campo] === "") {
-        formulario[campo] = valor;
-      }
-    });
-  }
-
-  /**
-   * Verifica si el formulario ha sido modificado
-   */
-  function formularioModificado() {
-    return Object.keys(datosIniciales).some(
-      (campo) => formulario[campo] !== datosIniciales[campo]
-    );
-  }
-
-  /**
-   * Obtiene solo los campos que han sido modificados
-   */
-  function obtenerCamposModificados() {
-    const camposModificados = {};
-    Object.keys(datosIniciales).forEach((campo) => {
-      if (formulario[campo] !== datosIniciales[campo]) {
-        camposModificados[campo] = formulario[campo];
-      }
-    });
-    return camposModificados;
-  }
-
+  // Retornar API del composable
   return {
     // Estado
-    formulario,
-    erroresCampos: readonly(erroresCampos),
-    erroresGenerales: readonly(erroresGenerales),
-    cargandoEnvio: readonly(cargandoEnvio),
+    datos,
+    errores,
+    enviando,
+    modificado,
+    mensajeExito,
+    mensajeError,
 
-    // Estado computado
-    tieneErrores,
+    // Configuración
+    validaciones,
+
+    // Computed
     formularioValido,
-    todosLosCamposTocados,
+    hayCambios,
 
-    // Métodos principales
-    reiniciarFormulario,
-    validarFormulario,
+    // Métodos de validación
     validarCampo,
-    manejarEnvio,
+    validarFormulario,
 
-    // Manipulación de datos
+    // Métodos de datos
     actualizarCampo,
-    actualizarCampos,
-    obtenerValorCampo,
-    marcarCampoComoTocado,
+    actualizarMultiplesCampos,
+    obtenerCampo,
+    obtenerDatos,
 
-    // Gestión de errores
+    // Métodos de estado
+    mostrarExito,
+    mostrarError,
+    limpiarMensajes,
     limpiarErrores,
-    limpiarErrorCampo,
-    agregarError,
-    obtenerErrorCampo,
-    obtenerErroresFormateados,
+    limpiarFormulario,
+    resetearFormulario,
 
-    // Utilidades
-    establecerValoresPorDefecto,
-    formularioModificado,
-    obtenerCamposModificados,
+    // Métodos de envío
+    enviarFormulario,
+
+    // Métodos de utilidad
+    marcarComoModificado,
+    obtenerErrores,
+    tieneError,
+    obtenerError,
   };
 }
+
+/**
+ * Validaciones predefinidas comunes
+ */
+export const validacionesComunes = {
+  requerido: {
+    requerido: true,
+    mensajeRequerido: "Este campo es requerido",
+  },
+
+  codigoMaterial: {
+    requerido: true,
+    minLength: 3,
+    maxLength: 50,
+    patron: /^[A-Z0-9\-_]+$/,
+    mensajePatron: "Solo letras mayúsculas, números, guiones y guiones bajos",
+  },
+
+  nombreMaterial: {
+    requerido: true,
+    minLength: 3,
+    maxLength: 300,
+  },
+
+  cantidad: {
+    requerido: true,
+    tipo: "numero",
+    min: 0,
+    mensajeMin: "La cantidad debe ser mayor o igual a 0",
+  },
+
+  pallets: {
+    tipo: "numero",
+    min: 0,
+    mensajeMin: "Los pallets deben ser mayor o igual a 0",
+  },
+
+  fecha: {
+    requerido: true,
+    tipo: "fecha",
+    noFutura: true,
+    mensajeNoFutura: "La fecha no puede ser futura",
+  },
+
+  email: {
+    requerido: true,
+    patron: /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
+    mensajePatron: "Formato de email inválido",
+  },
+
+  patenteCamion: {
+    patron: /^[A-Z]{2}-[0-9]{4}|[0-9]{4}-[A-Z]{2}$/,
+    mensajePatron: "Formato: XX-XXXX o XXXX-XX",
+  },
+};

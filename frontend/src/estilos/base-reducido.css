@@ -1,0 +1,292 @@
+/* =============================================================================
+   ESTILOS BASE REDUCIDOS 40% - WMS
+   ============================================================================= */
+
+/* Reset de tamaños base */
+html {
+  font-size: 9.6px; /* 16px * 0.6 = 9.6px */
+}
+
+body {
+  font-size: 0.875rem; /* ~14px base reducido a ~8.4px */
+  line-height: 1.4; /* Reducido de 1.6 */
+}
+
+/* Títulos reducidos */
+h1 {
+  font-size: 1.8rem; /* ~17.28px */
+  margin: 0.9rem 0 0.6rem 0;
+  line-height: 1.1;
+}
+
+h2 {
+  font-size: 1.5rem; /* ~14.4px */
+  margin: 0.75rem 0 0.45rem 0;
+  line-height: 1.15;
+}
+
+h3 {
+  font-size: 1.25rem; /* ~12px */
+  margin: 0.6rem 0 0.36rem 0;
+  line-height: 1.2;
+}
+
+h4 {
+  font-size: 1.125rem; /* ~10.8px */
+  margin: 0.45rem 0 0.27rem 0;
+  line-height: 1.25;
+}
+
+h5 {
+  font-size: 1rem; /* ~9.6px */
+  margin: 0.36rem 0 0.21rem 0;
+  line-height: 1.3;
+}
+
+h6 {
+  font-size: 0.875rem; /* ~8.4px */
+  margin: 0.3rem 0 0.18rem 0;
+  line-height: 1.35;
+}
+
+/* Párrafos y texto */
+p {
+  margin: 0.6rem 0;
+  font-size: 0.875rem; /* ~8.4px */
+}
+
+small {
+  font-size: 0.75rem; /* ~7.2px */
+}
+
+/* Elementos de formulario reducidos */
+input,
+select,
+textarea,
+button {
+  font-size: 0.8rem; /* ~7.68px */
+  padding: 0.3rem 0.45rem;
+  border-radius: 0.24rem;
+  border-width: 0.6px;
+}
+
+/* Botones específicos */
+button {
+  min-height: 1.8rem; /* ~17.28px */
+  padding: 0.3rem 0.6rem;
+}
+
+/* Links */
+a {
+  font-size: inherit;
+}
+
+/* Listas */
+ul,
+ol {
+  margin: 0.6rem 0;
+  padding-left: 1.2rem;
+}
+
+li {
+  margin: 0.15rem 0;
+  font-size: 0.875rem;
+}
+
+/* Tablas */
+table {
+  font-size: 1rem;
+}
+
+th,
+td {
+  padding: 0.3rem 0.45rem;
+}
+
+th {
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+
+/* Elementos semánticos */
+blockquote {
+  margin: 0.9rem 0;
+  padding: 0.6rem 0.9rem;
+  border-left: 0.24rem solid #e5e7eb;
+  font-size: 0.9rem;
+}
+
+code {
+  font-size: 0.75rem;
+  padding: 0.12rem 0.24rem;
+  border-radius: 0.18rem;
+}
+
+pre {
+  font-size: 0.75rem;
+  padding: 0.6rem;
+  border-radius: 0.24rem;
+  margin: 0.6rem 0;
+}
+
+/* Elementos multimedia */
+img,
+video,
+iframe {
+  max-width: 100%;
+  height: auto;
+}
+
+/* Elementos de contenido */
+hr {
+  margin: 1.2rem 0;
+  border-width: 0.6px 0 0 0;
+}
+
+/* Espaciado general mejorado */
+.contenido * + * {
+  margin-top: 0.6rem;
+}
+
+/* Clases específicas para componentes Vue */
+.vue-component {
+  font-size: 0.875rem;
+}
+
+.vue-component h1,
+.vue-component h2,
+.vue-component h3,
+.vue-component h4,
+.vue-component h5,
+.vue-component h6 {
+  margin-top: 0;
+}
+
+.vue-component p:first-child {
+  margin-top: 0;
+}
+
+.vue-component p:last-child {
+  margin-bottom: 0;
+}
+
+/* Ajustes para elementos interactivos */
+.clickable {
+  min-height: 2.4rem; /* ~23px para touch */
+  min-width: 2.4rem; /* ~23px para touch */
+}
+
+/* Media queries para dispositivos touch */
+@media (pointer: coarse) {
+  button,
+  input,
+  select,
+  textarea {
+    min-height: 2.64rem; /* ~25px */
+    padding: 0.36rem 0.54rem;
+  }
+
+  .clickable {
+    min-height: 2.64rem;
+    min-width: 2.64rem;
+  }
+}
+
+/* Ajustes responsivos adicionales */
+@media (max-width: 460px) {
+  html {
+    font-size: 8.4px; /* Aún más pequeño en móviles */
+  }
+
+  h1 {
+    font-size: 1.6rem;
+  }
+  h2 {
+    font-size: 1.35rem;
+  }
+  h3 {
+    font-size: 1.15rem;
+  }
+  h4 {
+    font-size: 1rem;
+  }
+  h5 {
+    font-size: 0.9rem;
+  }
+  h6 {
+    font-size: 0.8rem;
+  }
+}
+
+@media (max-width: 288px) {
+  html {
+    font-size: 7.2px; /* Ultra compacto */
+  }
+
+  body {
+    font-size: 0.8rem;
+  }
+}
+
+/* Utilidades de espaciado compacto */
+.espaciado-compacto {
+  margin: 0.3rem 0;
+  padding: 0.15rem 0;
+}
+
+.espaciado-compacto * {
+  margin: 0.15rem 0;
+}
+
+.sin-espaciado {
+  margin: 0;
+  padding: 0;
+}
+
+/* Ajustes para iconos y elementos gráficos */
+.icono {
+  width: 0.9rem;
+  height: 0.9rem;
+}
+
+.icono-pequeno {
+  width: 0.6rem;
+  height: 0.6rem;
+}
+
+.icono-mediano {
+  width: 1.2rem;
+  height: 1.2rem;
+}
+
+.icono-grande {
+  width: 1.5rem;
+  height: 1.5rem;
+}
+
+/* Ajustes para badges y elementos de estado */
+.badge {
+  font-size: 0.6rem;
+  padding: 0.12rem 0.3rem;
+  border-radius: 0.6rem;
+}
+
+.badge-pequeno {
+  font-size: 0.5rem;
+  padding: 0.09rem 0.21rem;
+  border-radius: 0.45rem;
+}
+
+/* Mejoras de legibilidad */
+@media (max-width: 460px) {
+  /* Asegurar que el texto siga siendo legible */
+  .texto-importante {
+    font-size: 0.9rem !important;
+    font-weight: 600;
+  }
+
+  .boton-importante {
+    font-size: 0.75rem !important;
+    padding: 0.45rem 0.75rem !important;
+  }
+}

@@ -114,319 +114,157 @@
     />
 
     <!-- Filtros de búsqueda -->
-    <div class="seccion-filtros">
+    <div class="seccion-filtros vista-tarjas">
       <div class="contenedor-filtros">
+        <!-- Fila Principal: Búsqueda + 3 filtros clave -->
         <div class="filtros-fila-principal">
-          <CampoEntrada
-            v-model="filtros.busqueda"
-            etiqueta="Buscar"
-            placeholder="Número de tarja, material, lote..."
-            tipo="search"
-            :mostrar-etiqueta="false"
-          />
+          <div class="campo-busqueda-principal">
+            <CampoEntrada
+              v-model="filtros.busqueda"
+              etiqueta="Búsqueda General"
+              placeholder="Número de tarja, material, lote..."
+              tipo="search"
+              :mostrar-etiqueta="true"
+            />
+          </div>
 
-          <CampoEntrada
-            v-model="filtros.planta"
-            etiqueta="Planta"
-            tipo="select"
-            :opciones="plantasDisponibles"
-            :mostrar-etiqueta="false"
-          />
+          <div class="campo-select">
+            <CampoEntrada
+              v-model="filtros.planta"
+              etiqueta="Planta"
+              tipo="select"
+              :opciones="plantasDisponibles"
+              :mostrar-etiqueta="true"
+            />
+          </div>
 
-          <CampoEntrada
-            v-model="filtros.tipoTarja"
-            etiqueta="Tipo de Tarja"
-            tipo="select"
-            :opciones="tiposTarjaDisponibles"
-            :mostrar-etiqueta="false"
-          />
+          <div class="campo-select">
+            <CampoEntrada
+              v-model="filtros.tipoTarja"
+              etiqueta="Tipo de Tarja"
+              tipo="select"
+              :opciones="tiposTarjaDisponibles"
+              :mostrar-etiqueta="true"
+            />
+          </div>
+
+          <div class="campo-select">
+            <CampoEntrada
+              v-model="filtros.material"
+              etiqueta="Material"
+              tipo="select"
+              :opciones="materialesDisponibles"
+              :mostrar-etiqueta="true"
+            />
+          </div>
         </div>
 
+        <!-- Fila Secundaria: Fechas, Estado, Proveedor, Guía, Usuario -->
         <div class="filtros-fila-secundaria">
-          <CampoEntrada
-            v-model="filtros.fechaDesde"
-            etiqueta="Desde"
-            tipo="date"
-            :maximo="filtros.fechaHasta || fechaActual"
-          />
+          <div class="campo-fecha">
+            <CampoEntrada
+              v-model="filtros.fechaDesde"
+              etiqueta="Fecha Desde"
+              tipo="date"
+              :maximo="filtros.fechaHasta || fechaActual"
+              :mostrar-etiqueta="true"
+            />
+          </div>
 
-          <CampoEntrada
-            v-model="filtros.fechaHasta"
-            etiqueta="Hasta"
-            tipo="date"
-            :minimo="filtros.fechaDesde"
-            :maximo="fechaActual"
-          />
+          <div class="campo-fecha">
+            <CampoEntrada
+              v-model="filtros.fechaHasta"
+              etiqueta="Fecha Hasta"
+              tipo="date"
+              :minimo="filtros.fechaDesde"
+              :maximo="fechaActual"
+              :mostrar-etiqueta="true"
+            />
+          </div>
 
-          <CampoEntrada
-            v-model="filtros.estado"
-            etiqueta="Estado"
-            tipo="select"
-            :opciones="estadosDisponibles"
-            :mostrar-etiqueta="false"
-          />
+          <div class="campo-select">
+            <CampoEntrada
+              v-model="filtros.estado"
+              etiqueta="Estado"
+              tipo="select"
+              :opciones="estadosDisponibles"
+              :mostrar-etiqueta="true"
+            />
+          </div>
 
-          <CampoEntrada
-            v-model="filtros.proveedor"
-            etiqueta="Proveedor"
-            tipo="select"
-            :opciones="proveedoresDisponibles"
-            :mostrar-etiqueta="false"
-          />
+          <div class="campo-select">
+            <CampoEntrada
+              v-model="filtros.proveedor"
+              etiqueta="Proveedor"
+              tipo="select"
+              :opciones="proveedoresDisponibles"
+              :mostrar-etiqueta="true"
+            />
+          </div>
+
+          <div class="campo-texto">
+            <CampoEntrada
+              v-model="filtros.guia"
+              etiqueta="Guía"
+              placeholder="Buscar por guía..."
+              tipo="text"
+              :mostrar-etiqueta="true"
+            />
+          </div>
+
+          <div class="campo-texto">
+            <CampoEntrada
+              v-model="filtros.usuario"
+              etiqueta="Usuario"
+              placeholder="Buscar por usuario..."
+              tipo="text"
+              :mostrar-etiqueta="true"
+            />
+          </div>
         </div>
 
-        <div class="filtros-fila-tercera">
-          <CampoEntrada
-            v-model="filtros.lote"
-            etiqueta="Lote"
-            placeholder="Buscar por lote..."
-            tipo="text"
-          />
+        <!-- Fila de Acciones: Lote + Botón Limpiar -->
+        <div class="filtros-fila-acciones">
+          <div class="campo-texto">
+            <CampoEntrada
+              v-model="filtros.lote"
+              etiqueta="Lote"
+              placeholder="Buscar por lote..."
+              tipo="text"
+              :mostrar-etiqueta="true"
+            />
+          </div>
 
-          <button
-            type="button"
-            class="boton boton-secundario boton-limpiar"
-            @click="limpiarFiltros"
-            title="Limpiar filtros"
-          >
-            <span class="icono-boton">🗑️</span>
-            Limpiar
-          </button>
+          <div class="grupo-acciones-filtros">
+            <span v-if="filtrosActivos > 0" class="filtros-activos-badge">
+              <span class="icono">🔍</span>
+              {{ filtrosActivos }} filtro{{
+                filtrosActivos !== 1 ? "s" : ""
+              }}
+              activo{{ filtrosActivos !== 1 ? "s" : "" }}
+            </span>
+
+            <button
+              type="button"
+              class="boton boton-secundario boton-limpiar"
+              @click="limpiarFiltros"
+              title="Limpiar todos los filtros"
+              :disabled="filtrosActivos === 0"
+            >
+              <span class="icono-boton">🗑️</span>
+              Limpiar
+            </button>
+          </div>
         </div>
       </div>
     </div>
 
     <!-- Formulario de nueva tarja -->
-    <div v-if="mostrarFormulario" class="seccion-formulario">
-      <div class="contenedor-formulario">
-        <div class="encabezado-formulario">
-          <h2 class="titulo-formulario">Registrar Nueva Tarja</h2>
-          <button
-            type="button"
-            class="boton-cerrar"
-            @click="cerrarFormulario"
-            :disabled="formulario.cargandoEnvio"
-          >
-            ✕
-          </button>
-        </div>
-
-        <form @submit.prevent="guardarTarja" class="formulario-tarja">
-          <div class="campos-formulario">
-            <!-- Primera fila -->
-            <div class="fila-campos">
-              <CampoEntrada
-                v-model="formulario.formulario.numero_tarja"
-                etiqueta="Número de Tarja"
-                placeholder="Se genera automáticamente"
-                solo-lectura
-                texto-ayuda="El número se asigna automáticamente al guardar"
-              />
-
-              <CampoEntrada
-                v-model="formulario.formulario.tipo_tarja"
-                etiqueta="Tipo de Tarja"
-                tipo="select"
-                :opciones="tiposTarjaDisponibles"
-                es-requerido
-                :mensaje-error="formulario.obtenerErrorCampo('tipo_tarja')"
-                @blur="formulario.marcarCampoComoTocado('tipo_tarja')"
-              />
-            </div>
-
-            <!-- Segunda fila -->
-            <div class="fila-campos">
-              <CampoEntrada
-                v-model="formulario.formulario.fecha_tarja"
-                etiqueta="Fecha de Tarja"
-                tipo="date"
-                es-requerido
-                :maximo="fechaActual"
-                :mensaje-error="formulario.obtenerErrorCampo('fecha_tarja')"
-                @blur="formulario.marcarCampoComoTocado('fecha_tarja')"
-              />
-
-              <CampoEntrada
-                v-model="formulario.formulario.temporada"
-                etiqueta="Temporada"
-                tipo="select"
-                :opciones="temporadasDisponibles"
-                es-requerido
-                :mensaje-error="formulario.obtenerErrorCampo('temporada')"
-                @blur="formulario.marcarCampoComoTocado('temporada')"
-              />
-            </div>
-
-            <!-- Tercera fila -->
-            <div class="fila-campos">
-              <CampoEntrada
-                v-model="formulario.formulario.codigo_material"
-                etiqueta="Código del Material"
-                placeholder="Ej: BOGR2062"
-                es-requerido
-                :mensaje-error="formulario.obtenerErrorCampo('codigo_material')"
-                @cambio="buscarMaterial"
-                @blur="formulario.marcarCampoComoTocado('codigo_material')"
-              />
-
-              <CampoEntrada
-                v-model="formulario.formulario.nombre_material"
-                etiqueta="Nombre del Material"
-                placeholder="Se completará automáticamente"
-                solo-lectura
-              />
-            </div>
-
-            <!-- Cuarta fila -->
-            <div class="fila-campos">
-              <CampoEntrada
-                v-model="formulario.formulario.lote"
-                etiqueta="Lote"
-                placeholder="Ej: L2024-001"
-                es-requerido
-                :mensaje-error="formulario.obtenerErrorCampo('lote')"
-                @blur="formulario.marcarCampoComoTocado('lote')"
-              />
-
-              <CampoEntrada
-                v-model="formulario.formulario.proveedor"
-                etiqueta="Proveedor"
-                tipo="select"
-                :opciones="proveedoresDisponibles"
-                es-requerido
-                :mensaje-error="formulario.obtenerErrorCampo('proveedor')"
-                @blur="formulario.marcarCampoComoTocado('proveedor')"
-              />
-            </div>
-
-            <!-- Quinta fila -->
-            <div class="fila-campos">
-              <CampoEntrada
-                v-model="formulario.formulario.cantidad_total"
-                etiqueta="Cantidad Total"
-                tipo="number"
-                placeholder="0"
-                es-requerido
-                minimo="0.01"
-                paso="0.01"
-                :mensaje-error="formulario.obtenerErrorCampo('cantidad_total')"
-                @blur="formulario.marcarCampoComoTocado('cantidad_total')"
-              />
-
-              <CampoEntrada
-                v-model="formulario.formulario.cantidad_disponible"
-                etiqueta="Cantidad Disponible"
-                tipo="number"
-                placeholder="0"
-                es-requerido
-                minimo="0"
-                paso="0.01"
-                :maximo="formulario.formulario.cantidad_total"
-                :mensaje-error="
-                  formulario.obtenerErrorCampo('cantidad_disponible')
-                "
-                @blur="formulario.marcarCampoComoTocado('cantidad_disponible')"
-              />
-            </div>
-
-            <!-- Sexta fila -->
-            <div class="fila-campos">
-              <CampoEntrada
-                v-model="formulario.formulario.ubicacion_almacenaje"
-                etiqueta="Ubicación de Almacenaje"
-                tipo="select"
-                :opciones="ubicacionesDisponibles"
-                es-requerido
-                :mensaje-error="
-                  formulario.obtenerErrorCampo('ubicacion_almacenaje')
-                "
-                @blur="formulario.marcarCampoComoTocado('ubicacion_almacenaje')"
-              />
-
-              <CampoEntrada
-                v-model="formulario.formulario.condicion_armado"
-                etiqueta="Condición de Armado"
-                tipo="select"
-                :opciones="condicionesArmadoDisponibles"
-                es-requerido
-                :mensaje-error="
-                  formulario.obtenerErrorCampo('condicion_armado')
-                "
-                @blur="formulario.marcarCampoComoTocado('condicion_armado')"
-              />
-            </div>
-
-            <!-- Séptima fila -->
-            <div class="fila-campos">
-              <CampoEntrada
-                v-model="formulario.formulario.fecha_vencimiento"
-                etiqueta="Fecha de Vencimiento"
-                tipo="date"
-                :minimo="fechaActual"
-                texto-ayuda="Opcional: fecha de caducidad del material"
-              />
-
-              <CampoEntrada
-                v-model="formulario.formulario.estado"
-                etiqueta="Estado"
-                tipo="select"
-                :opciones="estadosDisponibles"
-                es-requerido
-                :mensaje-error="formulario.obtenerErrorCampo('estado')"
-                @blur="formulario.marcarCampoComoTocado('estado')"
-              />
-            </div>
-
-            <!-- Octava fila -->
-            <div class="fila-campos fila-completa">
-              <CampoEntrada
-                v-model="formulario.formulario.observaciones"
-                etiqueta="Observaciones"
-                tipo="textarea"
-                placeholder="Información adicional sobre la tarja..."
-                :filas="3"
-                texto-ayuda="Opcional: condiciones especiales, incidencias, etc."
-              />
-            </div>
-          </div>
-
-          <!-- Errores generales del formulario -->
-          <MensajeEstado
-            v-if="formulario.tieneErrores"
-            tipo="error"
-            :mensaje="formulario.obtenerErroresFormateados()"
-            :visible="formulario.tieneErrores"
-            :puede-ser-cerrado="false"
-          />
-
-          <!-- Botones del formulario -->
-          <div class="botones-formulario">
-            <button
-              type="button"
-              class="boton boton-secundario"
-              @click="cerrarFormulario"
-              :disabled="formulario.cargandoEnvio"
-            >
-              Cancelar
-            </button>
-            <button
-              type="submit"
-              class="boton boton-principal"
-              :disabled="
-                !formulario.formularioValido || formulario.cargandoEnvio
-              "
-            >
-              <span
-                v-if="formulario.cargandoEnvio"
-                class="icono-boton spinner"
-              ></span>
-              <span v-else class="icono-boton">💾</span>
-              {{ formulario.cargandoEnvio ? "Guardando..." : "Guardar Tarja" }}
-            </button>
-          </div>
-        </form>
-      </div>
-    </div>
+    <FormularioTarjas
+      v-if="mostrarFormulario"
+      @enviar="manejarEnvioTarjas"
+      @cancelar="cerrarFormulario"
+    />
 
     <!-- Tabla de tarjas -->
     <div class="seccion-tabla">
@@ -475,7 +313,6 @@
 
 <script setup>
 import { ref, computed, onMounted, onUnmounted, watch } from "vue";
-import { usarFormulario } from "@/composables/usarFormulario";
 import { usarPaginacion } from "@/composables/usarPaginacion";
 import { usarExportacionExcel } from "@/composables/usarExportacionExcel";
 import { servicioTarjas } from "@/servicios/servicioTarjas";
@@ -484,16 +321,15 @@ import CampoEntrada from "@/componentes/CampoEntrada.vue";
 import MensajeEstado from "@/componentes/MensajeEstado.vue";
 import TablaTarjas from "@/componentes/tablas/TablaTarjas.vue";
 import ModalCodigoQR from "@/componentes/ModalCodigoQR.vue";
+import FormularioTarjas from "@/componentes/formularios/FormularioTarjas.vue";
 import {
   PLANTAS,
   TIPOS_TARJA,
   ESTADOS_TARJA,
-  CONDICIONES_ARMADO,
-  TEMPORADAS,
   MENSAJES,
   obtenerOpcionesSelect,
 } from "@/utilidades/constantes";
-import { fechaActualParaInput, generarId } from "@/utilidades/auxiliares";
+import { generarId } from "@/utilidades/auxiliares";
 
 // ============== ESTADO REACTIVO ==============
 
@@ -515,16 +351,19 @@ const tarjaSeleccionadaQR = ref(null);
 const modoQR = ref("escanear"); // 'generar' | 'escanear'
 const mostrarMenuQR = ref(false);
 
-// Filtros basados en campos reales de la API
+// Filtros basados en campos reales de la tabla
 const filtros = ref({
-  busqueda: "", // Busca en numero_tarja, codigo_material, nombre_material, lote, nombre_proveedor
+  busqueda: "", // Busca en numero_tarja, material, lote, proveedor
   planta: "Rancagua", // Campo real: planta
   tipoTarja: "", // Campo real: tipo_tarja
   fechaDesde: "", // Campo real: fecha_generacion (desde)
   fechaHasta: "", // Campo real: fecha_generacion (hasta)
   estado: "", // Campo real: estado
-  proveedor: "", // Campo real: nombre_proveedor
+  proveedor: "", // Campo real: proveedor
   lote: "", // Campo real: lote
+  material: "", // Campo real: material
+  guia: "", // Campo real: guia
+  usuario: "", // Campo real: usuario
 });
 
 // Paginación
@@ -541,30 +380,6 @@ const {
   obtenerConfiguracionColumnas,
 } = usarExportacionExcel();
 
-// Formulario de tarja
-const formulario = usarFormulario({
-  datosIniciales: {
-    numero_tarja: "",
-    tipo_tarja: "CAA",
-    fecha_tarja: fechaActualParaInput(),
-    temporada: "2024",
-    codigo_material: "",
-    nombre_material: "",
-    lote: "",
-    proveedor: "",
-    cantidad_total: 0,
-    cantidad_disponible: 0,
-    ubicacion_almacenaje: "",
-    condicion_armado: "Por Armar",
-    fecha_vencimiento: "",
-    estado: "activo",
-    observaciones: "",
-    planta: "Rancagua",
-  },
-  tipoValidacion: "tarjas",
-  validarEnTiempoReal: true,
-});
-
 // ============== COMPUTED PROPERTIES ==============
 
 const plantasDisponibles = computed(() => obtenerOpcionesSelect(PLANTAS));
@@ -575,29 +390,42 @@ const tiposTarjaDisponibles = computed(() =>
 
 const estadosDisponibles = computed(() => obtenerOpcionesSelect(ESTADOS_TARJA));
 
-const condicionesArmadoDisponibles = computed(() =>
-  obtenerOpcionesSelect(CONDICIONES_ARMADO)
-);
-
-const temporadasDisponibles = computed(() => obtenerOpcionesSelect(TEMPORADAS));
+const fechaActual = computed(() => {
+  const hoy = new Date();
+  return hoy.toISOString().split("T")[0];
+});
 
 const proveedoresDisponibles = computed(() => {
-  return proveedores.value.map((p) => ({
-    value: p.nombre_proveedor,
-    label: p.nombre_proveedor,
+  // Extraer proveedores únicos directamente de las tarjas cargadas
+  const proveedoresUnicos = [
+    ...new Set(
+      tarjas.value
+        .map((tarja) => tarja.proveedor?.completo?.title)
+        .filter(Boolean) // Solo valores no nulos/undefined
+    ),
+  ];
+
+  return proveedoresUnicos.map((proveedor) => ({
+    value: proveedor,
+    label: proveedor,
   }));
 });
 
-const ubicacionesDisponibles = computed(() => {
-  return ubicaciones.value
-    .filter((u) => u.planta === formulario.formulario.planta)
-    .map((u) => ({
-      value: u.title,
-      label: `${u.title} (${u.bodega_deposito})`,
-    }));
-});
+const materialesDisponibles = computed(() => {
+  // Extraer materiales únicos directamente de las tarjas cargadas
+  const materialesUnicos = [
+    ...new Set(
+      tarjas.value
+        .map((tarja) => `${tarja.material?.codigo} - ${tarja.material?.nombre}`)
+        .filter((material) => material && material !== "undefined - undefined")
+    ),
+  ];
 
-const fechaActual = computed(() => fechaActualParaInput());
+  return materialesUnicos.map((material) => ({
+    value: material,
+    label: material,
+  }));
+});
 
 const tieneActivosFiltros = computed(() => {
   const filtrosActivos = [
@@ -608,79 +436,28 @@ const tieneActivosFiltros = computed(() => {
     filtros.value.estado,
     filtros.value.proveedor,
     filtros.value.lote,
+    filtros.value.material,
+    filtros.value.guia,
+    filtros.value.usuario,
   ].filter((filtro) => filtro && filtro.toString().trim() !== "");
 
   return filtrosActivos.length > 0;
 });
 
-// columnasTabla eliminada por ESLint cleanup
-/*const columnasTabla = computed(() => [
-  {
-    clave: "numero_tarja",
-    titulo: "Nº Tarja",
-    ordenable: true,
-    ancho: "140px",
-  },
-  {
-    clave: "tipo_tarja",
-    titulo: "Tipo",
-    ordenable: true,
-    ancho: "100px",
-    alineacion: "centro",
-  },
-  {
-    clave: "material",
-    titulo: "Material",
-    ordenable: true,
-    ancho: "180px",
-  },
-  {
-    clave: "lote",
-    titulo: "Lote",
-    ordenable: true,
-    ancho: "120px",
-  },
-  {
-    clave: "proveedor",
-    titulo: "Proveedor",
-    ordenable: true,
-    ancho: "140px",
-  },
-  {
-    clave: "cantidades",
-    titulo: "Cantidades",
-    ordenable: false,
-    ancho: "120px",
-    alineacion: "derecha",
-  },
-  {
-    clave: "ubicacion_almacenaje",
-    titulo: "Ubicación",
-    ordenable: true,
-    ancho: "120px",
-  },
-  {
-    clave: "condicion_armado",
-    titulo: "Condición",
-    ordenable: true,
-    ancho: "120px",
-    alineacion: "centro",
-  },
-  {
-    clave: "estado",
-    titulo: "Estado",
-    ordenable: true,
-    ancho: "100px",
-    alineacion: "centro",
-  },
-  {
-    clave: "acciones",
-    titulo: "Acciones",
-    ordenable: false,
-    ancho: "140px",
-    alineacion: "centro",
-  },
-]);*/
+const filtrosActivos = computed(() => {
+  return [
+    filtros.value.busqueda,
+    filtros.value.tipoTarja,
+    filtros.value.fechaDesde,
+    filtros.value.fechaHasta,
+    filtros.value.estado,
+    filtros.value.proveedor,
+    filtros.value.lote,
+    filtros.value.material,
+    filtros.value.guia,
+    filtros.value.usuario,
+  ].filter((filtro) => filtro && filtro.toString().trim() !== "").length;
+});
 
 // ============== MÉTODOS ==============
 
@@ -695,7 +472,7 @@ async function cargarTarjas() {
 
     tarjas.value = datos || [];
     aplicarFiltros();
-    mostrarMensajeExito("Tarjas actualizadas correctamente");
+    mensajeExito.value = "Tarjas actualizadas correctamente";
   } catch (error) {
     console.error("Error al cargar tarjas:", error);
     mensajeError.value = error.message || MENSAJES.ERROR_GENERICO;
@@ -724,32 +501,10 @@ async function cargarUbicaciones() {
   }
 }
 
-async function buscarMaterial() {
-  const codigo = formulario.formulario.codigo_material?.trim();
-  if (!codigo || codigo.length < 2) {
-    formulario.formulario.nombre_material = "";
-    return;
-  }
-
-  try {
-    const material = await servicioMantenedores.obtenerMaterialPorCodigo(
-      codigo
-    );
-    if (material) {
-      formulario.formulario.nombre_material = material.nombre_material || "";
-    } else {
-      formulario.formulario.nombre_material = "";
-    }
-  } catch (error) {
-    console.error("Error al buscar material:", error);
-    formulario.formulario.nombre_material = "";
-  }
-}
-
 function aplicarFiltros() {
   let datos = [...tarjas.value];
 
-  // Aplicar filtro de búsqueda (en campos reales)
+  // Aplicar filtro de búsqueda (en campos reales de la API)
   if (filtros.value.busqueda) {
     const busqueda = filtros.value.busqueda.toLowerCase();
     datos = datos.filter((item) => {
@@ -758,7 +513,9 @@ function aplicarFiltros() {
         item.material?.codigo?.toLowerCase().includes(busqueda) ||
         item.material?.nombre?.toLowerCase().includes(busqueda) ||
         item.lote?.toLowerCase().includes(busqueda) ||
-        item.proveedor?.nombre?.toLowerCase().includes(busqueda)
+        item.proveedor?.completo?.title?.toLowerCase().includes(busqueda) ||
+        (item.guia && item.guia.toLowerCase().includes(busqueda)) ||
+        item.usuario?.nombre_usuario?.toLowerCase().includes(busqueda)
       );
     });
   }
@@ -773,10 +530,10 @@ function aplicarFiltros() {
     datos = datos.filter((item) => item.estado === filtros.value.estado);
   }
 
-  // Aplicar filtro de proveedor (campo real)
+  // Aplicar filtro de proveedor (campo real: proveedor.completo.title)
   if (filtros.value.proveedor) {
     datos = datos.filter(
-      (item) => item.proveedor?.nombre === filtros.value.proveedor
+      (item) => item.proveedor?.completo?.title === filtros.value.proveedor
     );
   }
 
@@ -784,6 +541,30 @@ function aplicarFiltros() {
   if (filtros.value.lote) {
     const lote = filtros.value.lote.toLowerCase();
     datos = datos.filter((item) => item.lote?.toLowerCase().includes(lote));
+  }
+
+  // Aplicar filtro de material (selector exacto basado en formato "codigo - nombre")
+  if (filtros.value.material) {
+    datos = datos.filter((item) => {
+      const materialCompleto = `${item.material?.codigo} - ${item.material?.nombre}`;
+      return materialCompleto === filtros.value.material;
+    });
+  }
+
+  // Aplicar filtro de guía (campo real: guia puede ser null)
+  if (filtros.value.guia) {
+    const guia = filtros.value.guia.toLowerCase();
+    datos = datos.filter(
+      (item) => item.guia && item.guia.toLowerCase().includes(guia)
+    );
+  }
+
+  // Aplicar filtro de usuario (campo real: usuario.nombre_usuario)
+  if (filtros.value.usuario) {
+    const usuario = filtros.value.usuario.toLowerCase();
+    datos = datos.filter((item) =>
+      item.usuario?.nombre_usuario?.toLowerCase().includes(usuario)
+    );
   }
 
   // Aplicar filtro de fechas (campo real: fecha_generacion)
@@ -815,80 +596,242 @@ function limpiarFiltros() {
     estado: "",
     proveedor: "",
     lote: "",
+    material: "",
+    guia: "",
+    usuario: "",
   };
   aplicarFiltros();
 }
 
 function verDetalleTarja(tarja) {
-  // TODO: Implementar modal de detalle
-  mostrarMensajeExito(`Detalle de tarja ${tarja.numero_tarja} (en desarrollo)`);
+  // Mostrar información detallada de la tarja
+  const detalles = [
+    `Número: ${tarja.numero_tarja}`,
+    `Tipo: ${tarja.tipo_tarja}`,
+    `Material: ${tarja.material?.codigo} - ${tarja.material?.nombre}`,
+    `Lote: ${tarja.lote}`,
+    `Cantidad: ${tarja.cantidad}`,
+    `Proveedor: ${tarja.proveedor?.completo?.title || "N/A"}`,
+    `Estado: ${tarja.estado}`,
+    `Fecha Generación: ${new Date(
+      tarja.fecha_generacion
+    ).toLocaleDateString()}`,
+    `Usuario: ${tarja.usuario?.nombre_usuario || "N/A"}`,
+  ].join("\n");
+
+  alert(`Detalles de la Tarja:\n\n${detalles}`);
+  console.log("Detalle completo de tarja:", tarja);
 }
 
 function editarTarja(tarja) {
-  // TODO: Implementar edición
-  mostrarMensajeExito(`Edición de tarja ${tarja.numero_tarja} (en desarrollo)`);
+  // Mostrar formulario de edición (funcionalidad simplificada)
+  const nuevoEstado = prompt(
+    `Editar Tarja ${tarja.numero_tarja}\nEstado actual: ${tarja.estado}\n\nNuevo estado (activo/inactivo/procesando/completado):`,
+    tarja.estado
+  );
+
+  if (nuevoEstado && nuevoEstado !== tarja.estado) {
+    // Simular actualización del estado
+    tarja.estado = nuevoEstado;
+    mensajeExito.value = `Estado de tarja ${tarja.numero_tarja} actualizado a: ${nuevoEstado}`;
+    aplicarFiltros(); // Refrescar la vista
+  }
 }
 
 function imprimirTarja(tarja) {
-  // TODO: Implementar impresión individual
-  mostrarMensajeExito(
-    `Impresión de tarja ${tarja.numero_tarja} (en desarrollo)`
-  );
+  // Abrir ventana de impresión con datos de la tarja
+  const contenidoImpresion = `
+    <html>
+      <head>
+        <title>Tarja ${tarja.numero_tarja}</title>
+        <style>
+          body { font-family: Arial, sans-serif; padding: 20px; }
+          .header { border-bottom: 2px solid #333; padding-bottom: 10px; margin-bottom: 20px; }
+          .info { margin: 5px 0; }
+          .label { font-weight: bold; }
+        </style>
+      </head>
+      <body>
+        <div class="header">
+          <h1>TARJA ${tarja.numero_tarja}</h1>
+          <p>Tipo: ${tarja.tipo_tarja} | Estado: ${tarja.estado}</p>
+        </div>
+        <div class="info"><span class="label">Material:</span> ${
+          tarja.material?.codigo
+        } - ${tarja.material?.nombre}</div>
+        <div class="info"><span class="label">Lote:</span> ${tarja.lote}</div>
+        <div class="info"><span class="label">Cantidad:</span> ${
+          tarja.cantidad
+        }</div>
+        <div class="info"><span class="label">Proveedor:</span> ${
+          tarja.proveedor?.completo?.title || "N/A"
+        }</div>
+        <div class="info"><span class="label">Fecha:</span> ${new Date(
+          tarja.fecha_generacion
+        ).toLocaleDateString()}</div>
+        <div class="info"><span class="label">Usuario:</span> ${
+          tarja.usuario?.nombre_usuario || "N/A"
+        }</div>
+      </body>
+    </html>
+  `;
+
+  const ventanaImpresion = window.open("", "_blank");
+  ventanaImpresion.document.write(contenidoImpresion);
+  ventanaImpresion.document.close();
+  ventanaImpresion.print();
+
+  mensajeExito.value = `Enviando tarja ${tarja.numero_tarja} a impresión`;
 }
 
 function imprimirTarjas() {
-  // TODO: Implementar impresión masiva
-  mostrarMensajeExito("Impresión masiva de tarjas en desarrollo");
+  if (tarjasFiltradas.value.length === 0) {
+    mensajeError.value = "No hay tarjas para imprimir";
+    return;
+  }
+
+  const confirmacion = confirm(
+    `¿Imprimir ${tarjasFiltradas.value.length} tarjas? Esto abrirá una ventana de impresión.`
+  );
+
+  if (confirmacion) {
+    let contenidoCompleto = `
+      <html>
+        <head>
+          <title>Tarjas - Impresión Masiva</title>
+          <style>
+            body { font-family: Arial, sans-serif; padding: 10px; }
+            .tarja { border: 1px solid #333; margin: 10px 0; padding: 15px; page-break-inside: avoid; }
+            .header { font-weight: bold; font-size: 16px; border-bottom: 1px solid #666; padding-bottom: 5px; }
+            .info { margin: 3px 0; font-size: 12px; }
+            @media print { .tarja { page-break-inside: avoid; } }
+          </style>
+        </head>
+        <body>
+    `;
+
+    tarjasFiltradas.value.forEach((tarja) => {
+      contenidoCompleto += `
+        <div class="tarja">
+          <div class="header">TARJA ${tarja.numero_tarja} - ${
+        tarja.tipo_tarja
+      }</div>
+          <div class="info">Material: ${tarja.material?.codigo} - ${
+        tarja.material?.nombre
+      }</div>
+          <div class="info">Lote: ${tarja.lote} | Cantidad: ${
+        tarja.cantidad
+      }</div>
+          <div class="info">Proveedor: ${
+            tarja.proveedor?.completo?.title || "N/A"
+          }</div>
+          <div class="info">Estado: ${tarja.estado} | Fecha: ${new Date(
+        tarja.fecha_generacion
+      ).toLocaleDateString()}</div>
+        </div>
+      `;
+    });
+
+    contenidoCompleto += "</body></html>";
+
+    const ventanaImpresion = window.open("", "_blank");
+    ventanaImpresion.document.write(contenidoCompleto);
+    ventanaImpresion.document.close();
+    ventanaImpresion.print();
+
+    mensajeExito.value = `Enviando ${tarjasFiltradas.value.length} tarjas a impresión masiva`;
+  }
 }
 
 function cerrarTarja(tarja) {
-  // TODO: Implementar cierre de tarja
-  mostrarMensajeExito(`Cierre de tarja ${tarja.numero_tarja} (en desarrollo)`);
+  const confirmacion = confirm(
+    `¿Cerrar la tarja ${tarja.numero_tarja}?\n\nEsta acción cambiará el estado a "cerrado" y la tarja no podrá ser modificada.`
+  );
+
+  if (confirmacion) {
+    // Actualizar estado de la tarja
+    tarja.estado = "cerrado";
+    tarja.fecha_cierre = new Date().toISOString();
+
+    mensajeExito.value = `Tarja ${tarja.numero_tarja} cerrada exitosamente`;
+    aplicarFiltros(); // Refrescar la vista
+  }
 }
 
 function duplicarTarja(tarja) {
-  // TODO: Implementar duplicado de tarja
-  mostrarMensajeExito(`Duplicar tarja ${tarja.numero_tarja} (en desarrollo)`);
+  const confirmacion = confirm(
+    `¿Duplicar la tarja ${tarja.numero_tarja}?\n\nSe creará una nueva tarja con los mismos datos pero un número diferente.`
+  );
+
+  if (confirmacion) {
+    // Crear una copia de la tarja con nuevo número
+    const nuevaTarja = {
+      ...tarja,
+      id: Date.now(), // ID temporal
+      numero_tarja: `${
+        tarja.tipo_tarja
+      }-${new Date().getFullYear()}-${generarId(4)}`,
+      estado: "activo",
+      fecha_generacion: new Date().toISOString(),
+      fecha_creacion: new Date().toISOString(),
+      usuario: tarja.usuario, // Mantener usuario original o usar actual
+    };
+
+    // Agregar la nueva tarja a la lista (simulación)
+    tarjas.value.unshift(nuevaTarja);
+
+    mensajeExito.value = `Tarja duplicada exitosamente. Nueva tarja: ${nuevaTarja.numero_tarja}`;
+    aplicarFiltros(); // Refrescar la vista
+  }
 }
 
-async function guardarTarja() {
-  const exito = await formulario.manejarEnvio(async (datos) => {
+async function manejarEnvioTarjas(datosFormulario) {
+  try {
+    // Mapear los datos del formulario al formato esperado por la API
+    const datosTarja = {
+      numero_tarja: datosFormulario.numeroTarja,
+      tipo_tarja: datosFormulario.tipoTarja,
+      fecha_tarja: datosFormulario.fechaCreacion,
+      temporada: new Date().getFullYear().toString(),
+      codigo_material: datosFormulario.codigoMaterial,
+      nombre_material: datosFormulario.nombreMaterial,
+      lote: datosFormulario.lote,
+      proveedor: datosFormulario.proveedor || "N/A",
+      cantidad_total: parseFloat(datosFormulario.cantidad),
+      cantidad_disponible: parseFloat(datosFormulario.cantidad),
+      ubicacion_almacenaje: datosFormulario.ubicacion,
+      condicion_armado: "Por Armar",
+      fecha_vencimiento: datosFormulario.fechaVencimiento || null,
+      estado: datosFormulario.estadoTarja || "activo",
+      observaciones: datosFormulario.observaciones,
+      planta: datosFormulario.planta,
+      // Campos específicos según el tipo de tarja
+      certificacion_caa: datosFormulario.certificacionCAA || null,
+      prioridad: datosFormulario.prioridad || "Normal",
+    };
+
     // Generar número de tarja si no existe
-    if (!datos.numero_tarja) {
-      datos.numero_tarja = `${
-        datos.tipo_tarja
+    if (!datosTarja.numero_tarja) {
+      datosTarja.numero_tarja = `${
+        datosTarja.tipo_tarja
       }-${new Date().getFullYear()}-${generarId(4)}`;
     }
 
-    // Si no se especifica cantidad disponible, usar cantidad total
-    if (!datos.cantidad_disponible && datos.cantidad_total) {
-      datos.cantidad_disponible = datos.cantidad_total;
+    const resultado = await servicioTarjas.crearTarja(datosTarja);
+
+    if (resultado) {
+      mensajeExito.value = "Tarja creada exitosamente";
+      cerrarFormulario();
+      await cargarTarjas();
     }
-
-    return await servicioTarjas.crearTarja(datos);
-  });
-
-  if (exito) {
-    mostrarMensajeExito(MENSAJES.EXITO_CREAR);
-    cerrarFormulario();
-    await cargarTarjas();
+  } catch (error) {
+    console.error("Error al crear tarja:", error);
+    mensajeError.value = error.message || "Error al crear la tarja";
   }
 }
 
 function cerrarFormulario() {
   mostrarFormulario.value = false;
-  formulario.reiniciarFormulario();
-  // Resetear valores por defecto
-  formulario.formulario.fecha_tarja = fechaActualParaInput();
-  formulario.formulario.planta = filtros.value.planta;
-  formulario.formulario.tipo_tarja = "CAA";
-  formulario.formulario.estado = "activo";
-  formulario.formulario.condicion_armado = "Por Armar";
-}
-
-function mostrarMensajeExito(mensaje) {
-  mensajeExito.value = mensaje;
-  mensajeError.value = "";
 }
 
 async function exportarAExcel() {
@@ -905,9 +848,7 @@ async function exportarAExcel() {
       anchoColumnas: configuracionColumnas,
     });
 
-    mostrarMensajeExito(
-      `Reporte exportado exitosamente: ${resultado.nombreArchivo} (${resultado.registrosExportados} registros)`
-    );
+    mensajeExito.value = `Reporte exportado exitosamente: ${resultado.nombreArchivo} (${resultado.registrosExportados} registros)`;
   } catch (error) {
     console.error("Error al exportar a Excel:", error);
     mensajeError.value = `Error al generar el reporte Excel: ${error.message}`;
@@ -932,9 +873,7 @@ function cerrarModalQR() {
 function manejarQRGenerado(evento) {
   const { tarja } = evento;
   console.log("QR generado para tarja:", tarja.numero_tarja);
-  mostrarMensajeExito(
-    `Código QR generado exitosamente para la tarja ${tarja.numero_tarja}`
-  );
+  mensajeExito.value = `Código QR generado exitosamente para la tarja ${tarja.numero_tarja}`;
 }
 
 function manejarQREscaneado(evento) {
@@ -942,7 +881,7 @@ function manejarQREscaneado(evento) {
   console.log("QR escaneado:", datos);
 
   if (typeof datos === "object" && datos.numeroTarja) {
-    mostrarMensajeExito(`QR escaneado: Tarja ${datos.numeroTarja} detectada`);
+    mensajeExito.value = `QR escaneado: Tarja ${datos.numeroTarja} detectada`;
 
     // Buscar la tarja en la lista actual
     const tarjaEncontrada = tarjas.value.find(
@@ -952,16 +891,12 @@ function manejarQREscaneado(evento) {
     if (tarjaEncontrada) {
       // Mostrar información de la tarja encontrada
       console.log("Tarja encontrada en el sistema:", tarjaEncontrada);
-      mostrarMensajeExito(
-        `Tarja ${datos.numeroTarja} encontrada en el sistema`
-      );
+      mensajeExito.value = `Tarja ${datos.numeroTarja} encontrada en el sistema`;
     } else {
-      mostrarMensajeExito(
-        `Tarja ${datos.numeroTarja} escaneada (no encontrada en la vista actual)`
-      );
+      mensajeExito.value = `Tarja ${datos.numeroTarja} escaneada (no encontrada en la vista actual)`;
     }
   } else {
-    mostrarMensajeExito("Código QR escaneado exitosamente");
+    mensajeExito.value = "Código QR escaneado exitosamente";
     console.log("Datos QR no estructurados:", textoOriginal);
   }
 }
@@ -981,20 +916,16 @@ function manejarDatosProcesados(evento) {
     if (tarjaEncontrada) {
       // Abrir detalles de la tarja encontrada
       verDetalleTarja(tarjaEncontrada);
-      mostrarMensajeExito(
-        `Mostrando detalles de la tarja ${datos.numeroTarja}`
-      );
+      mensajeExito.value = `Mostrando detalles de la tarja ${datos.numeroTarja}`;
     } else {
       // Mostrar información disponible
       console.log("Información de tarja escaneada:", datos);
-      mostrarMensajeExito(
-        `Datos de tarja ${datos.numeroTarja} procesados correctamente`
-      );
+      mensajeExito.value = `Datos de tarja ${datos.numeroTarja} procesados correctamente`;
     }
   } else {
     // Procesar datos genéricos
     console.log("Datos procesados:", datos);
-    mostrarMensajeExito("Datos del código QR procesados correctamente");
+    mensajeExito.value = "Datos del código QR procesados correctamente";
   }
 
   cerrarModalQR();
@@ -1021,9 +952,7 @@ function generarQRMasivo() {
   );
 
   if (confirmacion) {
-    mostrarMensajeExito(
-      `Iniciando generación masiva de ${tarjasFiltradas.value.length} códigos QR...`
-    );
+    mensajeExito.value = `Iniciando generación masiva de ${tarjasFiltradas.value.length} códigos QR...`;
     // Aquí podrías implementar la lógica de generación masiva
     console.log(
       "Generando QR masivo para tarjas:",
@@ -1043,8 +972,7 @@ function cerrarMenuQR(evento) {
 
 watch(
   () => filtros.value.planta,
-  async (nuevaPlanta) => {
-    formulario.formulario.planta = nuevaPlanta;
+  async () => {
     await cargarTarjas();
   }
 );
@@ -1058,6 +986,9 @@ watch(
     filtros.value.estado,
     filtros.value.proveedor,
     filtros.value.lote,
+    filtros.value.material,
+    filtros.value.guia,
+    filtros.value.usuario,
   ],
   () => {
     aplicarFiltros();
@@ -1080,6 +1011,9 @@ onUnmounted(() => {
 </script>
 
 <style scoped>
+/* Importar estilos optimizados de filtros */
+@import "../estilos/filtros-optimizados.css";
+
 .vista-tarjas {
   padding: 1.5rem;
   max-width: 100%;
@@ -1279,42 +1213,29 @@ onUnmounted(() => {
 }
 
 /* Filtros - usando mismo patrón */
-.seccion-filtros {
-  background: white;
-  border-radius: 1rem;
-  padding: 1.5rem;
-  margin-bottom: 2rem;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-  border: 1px solid #f1f5f9;
-}
-
-.filtros-fila-principal {
-  display: grid;
-  grid-template-columns: 1fr auto auto;
+/* Estilos específicos para VistaTarjas */
+.grupo-acciones-filtros {
+  display: flex;
+  align-items: center;
   gap: 1rem;
-  align-items: end;
-  margin-bottom: 1rem;
+  justify-content: flex-end;
 }
 
-.filtros-fila-secundaria {
-  display: grid;
-  grid-template-columns: auto auto auto auto;
-  gap: 1rem;
-  align-items: end;
+.filtros-activos-badge {
+  white-space: nowrap;
 }
 
-.filtros-fila-tercera {
-  display: grid;
-  grid-template-columns: 1fr auto;
-  gap: 1rem;
-  align-items: end;
-  margin-top: 1rem;
-  padding-top: 1rem;
-  border-top: 1px solid #f1f5f9;
+/* Optimización específica para el layout de tarjas */
+.vista-tarjas .filtros-fila-principal {
+  grid-template-columns: 2.5fr 1fr 1fr 1fr;
 }
 
-.boton-limpiar {
-  justify-self: end;
+.vista-tarjas .filtros-fila-secundaria {
+  grid-template-columns: repeat(6, minmax(140px, 1fr));
+}
+
+.vista-tarjas .filtros-fila-acciones {
+  grid-template-columns: 2fr auto;
 }
 
 /* Formulario - usando mismo patrón */

@@ -242,31 +242,31 @@ onMounted(() => {
 .mensaje-estado {
   display: flex;
   align-items: flex-start;
-  gap: 0.75rem;
-  border-radius: 0.5rem;
-  font-size: 0.875rem;
-  line-height: 1.25rem;
+  gap: 0.45rem;
+  border-radius: 0.3rem;
+  font-size: 0.525rem;
+  line-height: 0.75rem;
   position: relative;
   overflow: hidden;
 }
 
-/* Tamaños */
+/* Tamaños - Reducido 40% */
 .mensaje-estado.tamaño-pequeño {
-  padding: 0.75rem;
-  font-size: 0.75rem;
+  padding: 0.45rem;
+  font-size: 0.45rem;
 }
 
 .mensaje-estado.tamaño-mediano {
-  padding: 1rem;
-  font-size: 0.875rem;
+  padding: 0.6rem;
+  font-size: 0.525rem;
 }
 
 .mensaje-estado.tamaño-grande {
-  padding: 1.25rem;
-  font-size: 1rem;
+  padding: 0.75rem;
+  font-size: 0.6rem;
 }
 
-/* Posiciones */
+/* Posiciones - Reducido 40% */
 .mensaje-estado.posicion-relativo {
   position: relative;
   width: 100%;
@@ -274,31 +274,31 @@ onMounted(() => {
 
 .mensaje-estado.posicion-fijo-superior {
   position: fixed;
-  top: 1rem;
+  top: 0.6rem;
   left: 50%;
   transform: translateX(-50%);
   z-index: 1000;
-  max-width: 32rem;
-  width: calc(100% - 2rem);
+  max-width: 19.2rem;
+  width: calc(100% - 1.2rem);
 }
 
 .mensaje-estado.posicion-fijo-inferior {
   position: fixed;
-  bottom: 1rem;
+  bottom: 0.6rem;
   left: 50%;
   transform: translateX(-50%);
   z-index: 1000;
-  max-width: 32rem;
-  width: calc(100% - 2rem);
+  max-width: 19.2rem;
+  width: calc(100% - 1.2rem);
 }
 
 .mensaje-estado.posicion-flotante {
   position: fixed;
-  top: 1rem;
-  right: 1rem;
+  top: 0.6rem;
+  right: 0.6rem;
   z-index: 1000;
-  max-width: 24rem;
-  width: calc(100% - 2rem);
+  max-width: 14.4rem;
+  width: calc(100% - 1.2rem);
 }
 
 /* Tipos - Variante Sólida */
@@ -376,10 +376,10 @@ onMounted(() => {
   border: 1px solid #93c5fd;
 }
 
-/* Componentes internos */
+/* Componentes internos - Reducido 40% */
 .mensaje-icono {
   flex-shrink: 0;
-  font-size: 1.25rem;
+  font-size: 0.75rem;
   line-height: 1;
 }
 
@@ -390,11 +390,13 @@ onMounted(() => {
 
 .mensaje-titulo {
   font-weight: 600;
-  margin-bottom: 0.25rem;
+  margin-bottom: 0.15rem;
+  font-size: 0.6rem;
 }
 
 .mensaje-texto {
   line-height: 1.5;
+  font-size: 0.525rem;
 }
 
 .mensaje-parrafo {
@@ -403,26 +405,26 @@ onMounted(() => {
 
 .mensaje-lista {
   margin: 0;
-  padding-left: 1.25rem;
+  padding-left: 0.75rem;
   list-style-type: disc;
 }
 
 .mensaje-item {
-  margin-bottom: 0.25rem;
+  margin-bottom: 0.15rem;
 }
 
 .mensaje-item:last-child {
   margin-bottom: 0;
 }
 
-/* Botón de cerrar */
+/* Botón de cerrar - Reducido 40% */
 .mensaje-boton-cerrar {
   flex-shrink: 0;
   background: none;
   border: none;
-  padding: 0.25rem;
+  padding: 0.15rem;
   cursor: pointer;
-  border-radius: 0.25rem;
+  border-radius: 0.15rem;
   transition: all 0.2s ease-in-out;
   opacity: 0.7;
 }
@@ -433,13 +435,13 @@ onMounted(() => {
 }
 
 .mensaje-boton-cerrar:focus {
-  outline: 2px solid currentColor;
-  outline-offset: 2px;
+  outline: 1.2px solid currentColor;
+  outline-offset: 1.2px;
 }
 
 .icono-cerrar {
-  width: 1.25rem;
-  height: 1.25rem;
+  width: 0.75rem;
+  height: 0.75rem;
 }
 
 /* Utilidad para screen readers */
@@ -466,30 +468,30 @@ onMounted(() => {
 
 .entrada-desde {
   opacity: 0;
-  transform: translateY(-1rem) scale(0.95);
+  transform: translateY(-0.6rem) scale(0.95);
 }
 
 .salida-hacia {
   opacity: 0;
-  transform: translateY(-1rem) scale(0.95);
+  transform: translateY(-0.6rem) scale(0.95);
 }
 
-/* Responsive */
-@media (max-width: 640px) {
+/* Responsive - Reducido 40% */
+@media (max-width: 384px) {
   .mensaje-estado.posicion-fijo-superior,
   .mensaje-estado.posicion-fijo-inferior,
   .mensaje-estado.posicion-flotante {
-    left: 0.5rem;
-    right: 0.5rem;
+    left: 0.3rem;
+    right: 0.3rem;
     transform: none;
     width: auto;
     max-width: none;
   }
 
   .mensaje-estado.posicion-flotante {
-    top: 0.5rem;
-    right: 0.5rem;
-    left: 0.5rem;
+    top: 0.3rem;
+    right: 0.3rem;
+    left: 0.3rem;
   }
 }
 

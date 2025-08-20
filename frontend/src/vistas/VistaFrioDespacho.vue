@@ -48,13 +48,13 @@
         <CampoEntrada
           v-model="filtros.fecha_desde"
           tipo="date"
-          etiqueta="Desde"
+          etiqueta="Fecha desde"
         />
 
         <CampoEntrada
           v-model="filtros.fecha_hasta"
           tipo="date"
-          etiqueta="Hasta"
+          etiqueta="Fecha hasta"
         />
 
         <button @click="limpiarFiltros" class="boton boton-secundario">
@@ -93,111 +93,19 @@
       @cambiar-pagina="cambiarPagina"
     />
 
-    <!-- Modal de Formulario -->
-    <div
+    <!-- Formulario de nueva operación -->
+    <FormularioFrioDespacho
       v-if="mostrarFormulario"
-      class="modal-overlay"
-      @click="cerrarFormulario"
-    >
-      <div class="modal-contenido" @click.stop>
-        <div class="modal-header">
-          <h2>{{ operacionEditando ? "Editar" : "Nueva" }} Operación</h2>
-          <button @click="cerrarFormulario" class="boton-cerrar">
-            &times;
-          </button>
-        </div>
-
-        <form @submit.prevent="guardarOperacion" class="formulario-modal">
-          <div class="campos-formulario">
-            <CampoEntrada
-              v-model="formulario.tipo_operacion"
-              tipo="select"
-              etiqueta="Tipo de Operación *"
-              :opciones="tiposOperacion"
-              :error="errores.tipo_operacion"
-              requerido
-            />
-
-            <CampoEntrada
-              v-model="formulario.planta"
-              tipo="select"
-              etiqueta="Planta *"
-              :opciones="plantas"
-              :error="errores.planta"
-              requerido
-            />
-
-            <CampoEntrada
-              v-model="formulario.turno"
-              tipo="select"
-              etiqueta="Turno *"
-              :opciones="turnos"
-              :error="errores.turno"
-              requerido
-            />
-
-            <CampoEntrada
-              v-if="formulario.tipo_operacion === 'DESPACHO'"
-              v-model="formulario.numero_embarque"
-              tipo="text"
-              etiqueta="Número de Embarque"
-              :error="errores.numero_embarque"
-            />
-
-            <CampoEntrada
-              v-if="formulario.tipo_operacion === 'DESPACHO'"
-              v-model="formulario.patente_camion"
-              tipo="text"
-              etiqueta="Patente del Camión"
-              :error="errores.patente_camion"
-            />
-
-            <CampoEntrada
-              v-model="formulario.observaciones"
-              tipo="textarea"
-              etiqueta="Observaciones"
-              :error="errores.observaciones"
-            />
-          </div>
-
-          <div class="acciones-formulario">
-            <button
-              type="button"
-              @click="cerrarFormulario"
-              class="boton boton-secundario"
-            >
-              Cancelar
-            </button>
-            <button
-              type="submit"
-              :disabled="guardando"
-              class="boton boton-primario"
-            >
-              {{
-                guardando
-                  ? "Guardando..."
-                  : operacionEditando
-                  ? "Actualizar"
-                  : "Crear"
-              }}
-            </button>
-          </div>
-        </form>
-      </div>
-    </div>
+      @enviar="manejarEnvioFrioDespacho"
+      @cancelar="cerrarFormulario"
+    />
   </div>
 </template>
 
 <script setup>
-import { ref, computed, watch, onMounted } from "vue";
+import { ref, watch, onMounted } from "vue";
 import { servicioOperacionesFrioDespacho } from "@/servicios/servicioOperacionesFrioDespacho";
 import { servicioMantenedores } from "@/servicios/servicioMantenedores";
-import { validarDatos } from "@/utilidades/validaciones";
-import {
-  TIPOS_OPERACION_FRIO,
-  TURNOS,
-  ESTADOS_OPERACION,
-} from "@/utilidades/constantes";
 import { debounce } from "@/utilidades/auxiliares";
 
 // Componentes
@@ -205,6 +113,7 @@ import CampoEntrada from "@/componentes/CampoEntrada.vue";
 import MensajeEstado from "@/componentes/MensajeEstado.vue";
 import TablaReutilizable from "@/componentes/TablaReutilizable.vue";
 import ComponentePaginacion from "@/componentes/ComponentePaginacion.vue";
+import FormularioFrioDespacho from "@/componentes/formularios/FormularioFrioDespacho.vue";
 
 // Estado principal
 const operaciones = ref([]);
@@ -231,35 +140,9 @@ const filtros = ref({
 
 // Formulario
 const mostrarFormulario = ref(false);
-const guardando = ref(false);
-const operacionEditando = ref(null);
-const errores = ref({});
-
-const formulario = ref({
-  tipo_operacion: "",
-  planta: "",
-  turno: "",
-  numero_embarque: "",
-  patente_camion: "",
-  observaciones: "",
-  estado: "PLANIFICADA",
-});
 
 // Datos de mantenedores
 const plantas = ref([]);
-
-// Opciones computadas
-const tiposOperacion = computed(() =>
-  TIPOS_OPERACION_FRIO.map((tipo) => ({ valor: tipo, etiqueta: tipo }))
-);
-
-const turnos = computed(() =>
-  TURNOS.map((turno) => ({ valor: turno, etiqueta: turno }))
-);
-
-const estadosOperacion = computed(() =>
-  ESTADOS_OPERACION.map((estado) => ({ valor: estado, etiqueta: estado }))
-);
 
 // Configuración de tabla
 const columnas = [
@@ -372,90 +255,53 @@ const limpiarFiltros = () => {
 };
 
 const alternarFormulario = () => {
-  if (mostrarFormulario.value) {
-    cerrarFormulario();
-  } else {
-    abrirFormulario();
-  }
-};
-
-const abrirFormulario = (operacion = null) => {
-  operacionEditando.value = operacion;
-
-  if (operacion) {
-    formulario.value = { ...operacion };
-  } else {
-    reiniciarFormulario();
-  }
-
-  errores.value = {};
-  mostrarFormulario.value = true;
+  mostrarFormulario.value = !mostrarFormulario.value;
 };
 
 const cerrarFormulario = () => {
   mostrarFormulario.value = false;
-  operacionEditando.value = null;
-  reiniciarFormulario();
-  errores.value = {};
 };
 
-const reiniciarFormulario = () => {
-  formulario.value = {
-    tipo_operacion: "",
-    planta: "",
-    turno: "",
-    numero_embarque: "",
-    patente_camion: "",
-    observaciones: "",
-    estado: "PLANIFICADA",
-  };
-};
-
-const guardarOperacion = async () => {
-  errores.value = {};
-
-  // Validar datos
-  const erroresValidacion = validarDatos(
-    formulario.value,
-    "operacionesFrioDespacho"
-  );
-  if (erroresValidacion.length > 0) {
-    erroresValidacion.forEach((error) => {
-      const campo = error.toLowerCase().includes("tipo")
-        ? "tipo_operacion"
-        : error.toLowerCase().includes("planta")
-        ? "planta"
-        : error.toLowerCase().includes("turno")
-        ? "turno"
-        : "general";
-      errores.value[campo] = error;
-    });
-    return;
-  }
-
-  guardando.value = true;
-
+async function manejarEnvioFrioDespacho(datosFormulario) {
   try {
-    if (operacionEditando.value) {
-      await servicioOperacionesFrioDespacho.actualizar(
-        operacionEditando.value.id,
-        formulario.value
-      );
-      mostrarMensaje("exito", "Operación actualizada correctamente");
-    } else {
-      await servicioOperacionesFrioDespacho.crear(formulario.value);
-      mostrarMensaje("exito", "Operación creada correctamente");
-    }
+    // Mapear los datos del formulario al formato esperado por la API
+    const datosOperacion = {
+      tipo_operacion: datosFormulario.tipoOperacion,
+      planta: datosFormulario.planta,
+      fecha_operacion: datosFormulario.fechaOperacion,
+      turno: datosFormulario.turno,
+      temperatura: datosFormulario.temperatura
+        ? parseFloat(datosFormulario.temperatura)
+        : null,
+      humedad: datosFormulario.humedad
+        ? parseFloat(datosFormulario.humedad)
+        : null,
+      codigo_material: datosFormulario.codigoMaterial,
+      nombre_material: datosFormulario.nombreMaterial,
+      lote: datosFormulario.lote,
+      cantidad: parseFloat(datosFormulario.cantidad),
+      bodega: datosFormulario.bodega,
+      ubicacion: datosFormulario.ubicacion,
+      cliente: datosFormulario.cliente || null,
+      numero_embarque: datosFormulario.numeroEmbarque || null,
+      observaciones: datosFormulario.observaciones,
+      estado: "PLANIFICADA",
+    };
 
-    cerrarFormulario();
-    await cargarOperaciones(paginacion.value.paginaActual);
-  } catch (err) {
-    console.error("Error guardando operación:", err);
-    mostrarMensaje("error", "Error al guardar la operación");
-  } finally {
-    guardando.value = false;
+    const resultado = await servicioOperacionesFrioDespacho.crear(
+      datosOperacion
+    );
+
+    if (resultado) {
+      mostrarMensaje("exito", "Operación creada exitosamente");
+      cerrarFormulario();
+      await cargarOperaciones(paginacion.value.paginaActual);
+    }
+  } catch (error) {
+    console.error("Error al crear operación:", error);
+    mostrarMensaje("error", error.message || "Error al crear la operación");
   }
-};
+}
 
 const eliminarOperacion = async (id) => {
   if (!confirm("¿Está seguro de eliminar esta operación?")) return;
@@ -478,7 +324,11 @@ const cambiarPagina = (nuevaPagina) => {
 const manejarAccion = (accion, operacion) => {
   switch (accion) {
     case "editar":
-      abrirFormulario(operacion);
+      // TODO: Implementar edición
+      mostrarMensaje(
+        "info",
+        `Edición de operación ${operacion.numero_operacion} (en desarrollo)`
+      );
       break;
     case "eliminar":
       eliminarOperacion(operacion.id);

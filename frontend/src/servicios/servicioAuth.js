@@ -1,5 +1,10 @@
 const URL_API = "/api";
 
+// Cache para evitar múltiples verificaciones simultáneas
+let verificandoToken = null;
+let ultimaVerificacion = 0;
+const TIEMPO_CACHE_VERIFICACION = 5000; // 5 segundos
+
 /**
  * Servicio de autenticación
  * Maneja el inicio y cierre de sesión de usuarios
@@ -68,6 +73,45 @@ export const servicioAutenticacion = {
   async verificarToken(token) {
     if (!token) return false;
 
+    // Evitar múltiples verificaciones simultáneas
+    const ahora = Date.now();
+    if (
+      verificandoToken &&
+      ahora - ultimaVerificacion < TIEMPO_CACHE_VERIFICACION
+    ) {
+      console.log("Verificación de token en cache, reutilizando resultado...");
+      return verificandoToken;
+    }
+
+    // Si ya hay una verificación en curso, esperarla
+    if (verificandoToken instanceof Promise) {
+      console.log("Verificación ya en curso, esperando resultado...");
+      return verificandoToken;
+    }
+
+    ultimaVerificacion = ahora;
+    verificandoToken = this._verificarTokenEnServidor(token);
+
+    try {
+      const resultado = await verificandoToken;
+      // Mantener el resultado en cache por un tiempo
+      setTimeout(() => {
+        verificandoToken = null;
+      }, TIEMPO_CACHE_VERIFICACION);
+
+      return resultado;
+    } catch (error) {
+      verificandoToken = null;
+      throw error;
+    }
+  },
+
+  /**
+   * Función interna para verificar token en el servidor
+   * @param {string} token - Token a verificar
+   * @returns {Promise<boolean>} - True si el token es válido
+   */
+  async _verificarTokenEnServidor(token) {
     try {
       const respuesta = await fetch(`${URL_API}/auth/validate`, {
         method: "GET",

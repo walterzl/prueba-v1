@@ -927,6 +927,345 @@ class ControladorMantenedores {
   }
 
   /**
+   * Obtiene todos los tipos de tarja únicos del sistema
+   * @param {Request} req - Request de Express
+   * @param {Response} res - Response de Express
+   */
+  static async obtenerTiposTarja(req, res) {
+    try {
+      const tiposTarja = await prisma.tarjas.findMany({
+        select: {
+          tipo_tarja: true,
+        },
+        distinct: ["tipo_tarja"],
+        orderBy: {
+          tipo_tarja: "asc",
+        },
+      });
+
+      const tiposFormateados = tiposTarja.map((item) => ({
+        value: item.tipo_tarja,
+        label: item.tipo_tarja,
+        title: item.tipo_tarja,
+      }));
+
+      return ManejadorRespuestas.exito(
+        res,
+        tiposFormateados,
+        "Tipos de tarja obtenidos exitosamente"
+      );
+    } catch (error) {
+      console.error("Error al obtener tipos de tarja:", error);
+      return ManejadorRespuestas.error(
+        res,
+        "Error al obtener tipos de tarja",
+        "ERROR_OBTENER_TIPOS_TARJA"
+      );
+    }
+  }
+
+  /**
+   * Obtiene todos los tipos de operación únicos del sistema
+   * @param {Request} req - Request de Express
+   * @param {Response} res - Response de Express
+   */
+  static async obtenerTiposOperacion(req, res) {
+    try {
+      const tiposOperacion = await prisma.operaciones_frio_despacho.findMany({
+        select: {
+          tipo_operacion: true,
+        },
+        distinct: ["tipo_operacion"],
+        orderBy: {
+          tipo_operacion: "asc",
+        },
+      });
+
+      const tiposFormateados = tiposOperacion.map((item) => ({
+        value: item.tipo_operacion,
+        label: item.tipo_operacion,
+        title: item.tipo_operacion,
+      }));
+
+      return ManejadorRespuestas.exito(
+        res,
+        tiposFormateados,
+        "Tipos de operación obtenidos exitosamente"
+      );
+    } catch (error) {
+      console.error("Error al obtener tipos de operación:", error);
+      return ManejadorRespuestas.error(
+        res,
+        "Error al obtener tipos de operación",
+        "ERROR_OBTENER_TIPOS_OPERACION"
+      );
+    }
+  }
+
+  /**
+   * Obtiene todos los turnos únicos del sistema
+   * @param {Request} req - Request de Express
+   * @param {Response} res - Response de Express
+   */
+  static async obtenerTurnos(req, res) {
+    try {
+      const turnos = await prisma.operaciones_frio_despacho.findMany({
+        select: {
+          turno: true,
+        },
+        distinct: ["turno"],
+        where: {
+          turno: {
+            not: null,
+          },
+        },
+        orderBy: {
+          turno: "asc",
+        },
+      });
+
+      const turnosFormateados = turnos.map((item) => ({
+        value: item.turno,
+        label: item.turno,
+        title: item.turno,
+      }));
+
+      return ManejadorRespuestas.exito(
+        res,
+        turnosFormateados,
+        "Turnos obtenidos exitosamente"
+      );
+    } catch (error) {
+      console.error("Error al obtener turnos:", error);
+      return ManejadorRespuestas.error(
+        res,
+        "Error al obtener turnos",
+        "ERROR_OBTENER_TURNOS"
+      );
+    }
+  }
+
+  /**
+   * Obtiene todas las bodegas únicas del sistema
+   * @param {Request} req - Request de Express
+   * @param {Response} res - Response de Express
+   */
+  static async obtenerBodegas(req, res) {
+    try {
+      const bodegas = await prisma.ubicacion.findMany({
+        select: {
+          bodega_deposito: true,
+        },
+        distinct: ["bodega_deposito"],
+        where: {
+          bodega_deposito: {
+            not: null,
+          },
+          activo: true,
+        },
+        orderBy: {
+          bodega_deposito: "asc",
+        },
+      });
+
+      const bodegasFormateadas = bodegas.map((item) => ({
+        value: item.bodega_deposito,
+        label: item.bodega_deposito,
+        title: item.bodega_deposito,
+      }));
+
+      return ManejadorRespuestas.exito(
+        res,
+        bodegasFormateadas,
+        "Bodegas obtenidas exitosamente"
+      );
+    } catch (error) {
+      console.error("Error al obtener bodegas:", error);
+      return ManejadorRespuestas.error(
+        res,
+        "Error al obtener bodegas",
+        "ERROR_OBTENER_BODEGAS"
+      );
+    }
+  }
+
+  /**
+   * Obtiene todos los estados de tarja únicos del sistema
+   * @param {Request} req - Request de Express
+   * @param {Response} res - Response de Express
+   */
+  static async obtenerEstadosTarja(req, res) {
+    try {
+      const estados = await prisma.tarjas.findMany({
+        select: {
+          estado: true,
+        },
+        distinct: ["estado"],
+        where: {
+          estado: {
+            not: null,
+          },
+        },
+        orderBy: {
+          estado: "asc",
+        },
+      });
+
+      const estadosFormateados = estados.map((item) => ({
+        value: item.estado,
+        label: item.estado,
+        title: item.estado,
+      }));
+
+      return ManejadorRespuestas.exito(
+        res,
+        estadosFormateados,
+        "Estados de tarja obtenidos exitosamente"
+      );
+    } catch (error) {
+      console.error("Error al obtener estados de tarja:", error);
+      return ManejadorRespuestas.error(
+        res,
+        "Error al obtener estados de tarja",
+        "ERROR_OBTENER_ESTADOS_TARJA"
+      );
+    }
+  }
+
+  /**
+   * Obtiene certificaciones CAA predefinidas
+   * @param {Request} req - Request de Express
+   * @param {Response} res - Response de Express
+   */
+  static async obtenerCertificacionesCAA(req, res) {
+    try {
+      // Certificaciones CAA típicas del sector agrícola
+      const certificaciones = [
+        {
+          value: "ORGÁNICO",
+          label: "Orgánico",
+          title: "Certificación Orgánica",
+        },
+        {
+          value: "GAP",
+          label: "Good Agricultural Practices",
+          title: "Buenas Prácticas Agrícolas",
+        },
+        {
+          value: "HACCP",
+          label: "HACCP",
+          title: "Análisis de Peligros y Puntos Críticos de Control",
+        },
+        { value: "BRC", label: "BRC", title: "British Retail Consortium" },
+        {
+          value: "IFS",
+          label: "IFS",
+          title: "International Featured Standards",
+        },
+        { value: "SQF", label: "SQF", title: "Safe Quality Food" },
+        {
+          value: "RAINFOREST",
+          label: "Rainforest Alliance",
+          title: "Rainforest Alliance",
+        },
+        { value: "FAIRTRADE", label: "Fair Trade", title: "Comercio Justo" },
+        {
+          value: "SIN_CERTIFICACION",
+          label: "Sin Certificación",
+          title: "Sin Certificación",
+        },
+      ];
+
+      return ManejadorRespuestas.exito(
+        res,
+        certificaciones,
+        "Certificaciones CAA obtenidas exitosamente"
+      );
+    } catch (error) {
+      console.error("Error al obtener certificaciones CAA:", error);
+      return ManejadorRespuestas.error(
+        res,
+        "Error al obtener certificaciones CAA",
+        "ERROR_OBTENER_CERTIFICACIONES_CAA"
+      );
+    }
+  }
+
+  /**
+   * Obtiene prioridades predefinidas
+   * @param {Request} req - Request de Express
+   * @param {Response} res - Response de Express
+   */
+  static async obtenerPrioridades(req, res) {
+    try {
+      const prioridades = [
+        { value: "ALTA", label: "Alta", title: "Prioridad Alta" },
+        { value: "MEDIA", label: "Media", title: "Prioridad Media" },
+        { value: "BAJA", label: "Baja", title: "Prioridad Baja" },
+        { value: "URGENTE", label: "Urgente", title: "Prioridad Urgente" },
+      ];
+
+      return ManejadorRespuestas.exito(
+        res,
+        prioridades,
+        "Prioridades obtenidas exitosamente"
+      );
+    } catch (error) {
+      console.error("Error al obtener prioridades:", error);
+      return ManejadorRespuestas.error(
+        res,
+        "Error al obtener prioridades",
+        "ERROR_OBTENER_PRIORIDADES"
+      );
+    }
+  }
+
+  /**
+   * Obtiene todos los roles de usuario predefinidos
+   * @param {Request} req - Request de Express
+   * @param {Response} res - Response de Express
+   */
+  static async obtenerRoles(req, res) {
+    try {
+      const roles = [
+        {
+          value: "admin",
+          label: "Administrador",
+          descripcion: "Acceso total al sistema",
+        },
+        {
+          value: "supervisor",
+          label: "Supervisor",
+          descripcion: "Supervisa operaciones y genera reportes",
+        },
+        {
+          value: "operador",
+          label: "Operador",
+          descripcion: "Opera el sistema de inventario",
+        },
+        {
+          value: "consulta",
+          label: "Solo Consulta",
+          descripcion: "Solo puede consultar información",
+        },
+      ];
+
+      return ManejadorRespuestas.exito(
+        res,
+        roles,
+        "Roles obtenidos exitosamente"
+      );
+    } catch (error) {
+      console.error("Error al obtener roles:", error);
+      return ManejadorRespuestas.error(
+        res,
+        "Error al obtener roles",
+        "ERROR_OBTENER_ROLES"
+      );
+    }
+  }
+
+  /**
    * Obtiene resumen de todos los mantenedores
    * @param {Request} req - Request de Express
    * @param {Response} res - Response de Express

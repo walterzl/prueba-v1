@@ -74,64 +74,240 @@
     />
 
     <!-- Filtros de búsqueda -->
-    <div class="seccion-filtros">
+    <div class="seccion-filtros vista-trazabilidad">
       <div class="contenedor-filtros">
+        <!-- Fila Principal: Búsqueda + Planta + Tipo Movimiento -->
         <div class="filtros-fila-principal">
-          <CampoEntrada
-            v-model="filtros.busqueda"
-            etiqueta="Buscar"
-            placeholder="Material, lote, tarja o usuario..."
-            tipo="search"
-            :mostrar-etiqueta="false"
-            @cambio="aplicarFiltros"
-          />
+          <div class="campo-busqueda-principal">
+            <CampoEntrada
+              v-model="filtros.busqueda"
+              etiqueta="Búsqueda General"
+              placeholder="Material, lote, tarja o usuario..."
+              tipo="search"
+              :mostrar-etiqueta="true"
+              @cambio="aplicarFiltros"
+            />
+          </div>
 
-          <CampoEntrada
-            v-model="filtros.planta"
-            etiqueta="Planta"
-            tipo="select"
-            :opciones="plantasDisponibles"
-            :mostrar-etiqueta="false"
-            @cambio="aplicarFiltros"
-          />
+          <div class="campo-select">
+            <CampoEntrada
+              v-model="filtros.planta"
+              etiqueta="Planta"
+              tipo="select"
+              :opciones="plantasDisponibles"
+              :mostrar-etiqueta="true"
+              @cambio="aplicarFiltros"
+            />
+          </div>
 
-          <CampoEntrada
-            v-model="filtros.tipoMovimiento"
-            etiqueta="Tipo de Movimiento"
-            tipo="select"
-            :opciones="tiposMovimientoDisponibles"
-            :mostrar-etiqueta="false"
-            @cambio="aplicarFiltros"
-          />
+          <div class="campo-select">
+            <CampoEntrada
+              v-model="filtros.tipoMovimiento"
+              etiqueta="Tipo de Movimiento"
+              tipo="select"
+              :opciones="tiposMovimientoDisponibles"
+              :mostrar-etiqueta="true"
+              @cambio="aplicarFiltros"
+            />
+          </div>
         </div>
 
+        <!-- Fila Secundaria: Fechas + Proveedor + Lote -->
         <div class="filtros-fila-secundaria">
-          <CampoEntrada
-            v-model="filtros.fechaDesde"
-            etiqueta="Desde"
-            tipo="date"
-            :maximo="filtros.fechaHasta || fechaActual"
-            @cambio="aplicarFiltros"
-          />
+          <div class="campo-fecha">
+            <CampoEntrada
+              v-model="filtros.fechaDesde"
+              etiqueta="Fecha Desde"
+              tipo="date"
+              :maximo="filtros.fechaHasta || fechaActual"
+              :mostrar-etiqueta="true"
+              @cambio="aplicarFiltros"
+            />
+          </div>
 
-          <CampoEntrada
-            v-model="filtros.fechaHasta"
-            etiqueta="Hasta"
-            tipo="date"
-            :minimo="filtros.fechaDesde"
-            :maximo="fechaActual"
-            @cambio="aplicarFiltros"
-          />
+          <div class="campo-fecha">
+            <CampoEntrada
+              v-model="filtros.fechaHasta"
+              etiqueta="Fecha Hasta"
+              tipo="date"
+              :minimo="filtros.fechaDesde"
+              :maximo="fechaActual"
+              :mostrar-etiqueta="true"
+              @cambio="aplicarFiltros"
+            />
+          </div>
 
-          <button
-            type="button"
-            class="boton boton-secundario boton-limpiar"
-            @click="limpiarFiltros"
-            title="Limpiar filtros"
-          >
-            <span class="icono-boton">🗑️</span>
-            Limpiar
-          </button>
+          <div class="campo-select">
+            <CampoEntrada
+              v-model="filtros.proveedor"
+              etiqueta="Proveedor"
+              tipo="select"
+              :opciones="proveedoresDisponibles"
+              :mostrar-etiqueta="true"
+              @cambio="aplicarFiltros"
+            />
+          </div>
+
+          <div class="campo-texto">
+            <CampoEntrada
+              v-model="filtros.lote"
+              etiqueta="Lote"
+              placeholder="Buscar por lote..."
+              tipo="text"
+              :mostrar-etiqueta="true"
+              @cambio="aplicarFiltros"
+            />
+          </div>
+        </div>
+
+        <!-- Fila Avanzada: Clasificación + Bodegas + Turno + Guías + Transporte -->
+        <div class="filtros-fila-avanzada">
+          <div class="campo-select">
+            <CampoEntrada
+              v-model="filtros.clasificacion"
+              etiqueta="Clasificación"
+              tipo="select"
+              :opciones="clasificacionesDisponibles"
+              :mostrar-etiqueta="true"
+              @cambio="aplicarFiltros"
+            />
+          </div>
+
+          <div class="campo-select">
+            <CampoEntrada
+              v-model="filtros.bodegaOrigen"
+              etiqueta="Bodega Origen"
+              tipo="select"
+              :opciones="bodegasOrigenDisponibles"
+              :mostrar-etiqueta="true"
+              @cambio="aplicarFiltros"
+            />
+          </div>
+
+          <div class="campo-select">
+            <CampoEntrada
+              v-model="filtros.bodegaDestino"
+              etiqueta="Bodega Destino"
+              tipo="select"
+              :opciones="bodegasDestinoDisponibles"
+              :mostrar-etiqueta="true"
+              @cambio="aplicarFiltros"
+            />
+          </div>
+
+          <div class="campo-select">
+            <CampoEntrada
+              v-model="filtros.turno"
+              etiqueta="Turno"
+              tipo="select"
+              :opciones="turnosRealesDisponibles"
+              :mostrar-etiqueta="true"
+              @cambio="aplicarFiltros"
+            />
+          </div>
+
+          <div class="campo-texto">
+            <CampoEntrada
+              v-model="filtros.guiaSII"
+              etiqueta="Guía SII"
+              placeholder="Buscar por guía SII..."
+              tipo="text"
+              @cambio="aplicarFiltros"
+            />
+          </div>
+
+          <div class="campo-texto">
+            <CampoEntrada
+              v-model="filtros.numeroEmbarque"
+              etiqueta="N° Embarque"
+              placeholder="Buscar por embarque..."
+              tipo="text"
+              @cambio="aplicarFiltros"
+            />
+          </div>
+
+          <div class="campo-texto">
+            <CampoEntrada
+              v-model="filtros.patenteCamion"
+              etiqueta="Patente Camión"
+              placeholder="Buscar por patente..."
+              tipo="text"
+              @cambio="aplicarFiltros"
+            />
+          </div>
+        </div>
+
+        <!-- Fila Extra: Ubicaciones + Temporada + Observación + Acciones -->
+        <div class="filtros-fila-extra">
+          <div class="campo-texto">
+            <CampoEntrada
+              v-model="filtros.ubicacionOrigen"
+              etiqueta="Ubicación Origen"
+              placeholder="Buscar ubicación origen..."
+              tipo="text"
+              @cambio="aplicarFiltros"
+            />
+          </div>
+
+          <div class="campo-texto">
+            <CampoEntrada
+              v-model="filtros.ubicacionDestino"
+              etiqueta="Ubicación Destino"
+              placeholder="Buscar ubicación destino..."
+              tipo="text"
+              @cambio="aplicarFiltros"
+            />
+          </div>
+
+          <div class="campo-select">
+            <CampoEntrada
+              v-model="filtros.temporada"
+              etiqueta="Temporada"
+              tipo="select"
+              :opciones="temporadasDisponibles"
+              :mostrar-etiqueta="true"
+              @cambio="aplicarFiltros"
+            />
+          </div>
+
+          <div class="campo-texto">
+            <CampoEntrada
+              v-model="filtros.observacion"
+              etiqueta="Observación"
+              placeholder="Buscar en observaciones..."
+              tipo="text"
+              @cambio="aplicarFiltros"
+            />
+          </div>
+        </div>
+
+        <!-- Fila de Acciones -->
+        <div class="filtros-fila-acciones">
+          <div class="indicadores-filtros">
+            <span
+              v-if="filtrosActivosTrazabilidad > 0"
+              class="filtros-activos-badge"
+            >
+              <span class="icono">🔍</span>
+              {{ filtrosActivosTrazabilidad }} filtro{{
+                filtrosActivosTrazabilidad !== 1 ? "s" : ""
+              }}
+              activo{{ filtrosActivosTrazabilidad !== 1 ? "s" : "" }}
+            </span>
+          </div>
+
+          <div class="grupo-acciones-filtros">
+            <button
+              type="button"
+              class="boton boton-secundario boton-limpiar"
+              @click="limpiarFiltros"
+              title="Limpiar todos los filtros"
+              :disabled="filtrosActivosTrazabilidad === 0"
+            >
+              <span class="icono-boton">🗑️</span>
+              Limpiar
+            </button>
+          </div>
         </div>
       </div>
     </div>
@@ -141,181 +317,15 @@
       <div class="contenedor-formulario">
         <div class="encabezado-formulario">
           <h2 class="titulo-formulario">Registrar Nuevo Movimiento</h2>
-          <button
-            type="button"
-            class="boton-cerrar"
-            @click="cerrarFormulario"
-            :disabled="formulario.cargandoEnvio"
-          >
+          <button type="button" class="boton-cerrar" @click="cerrarFormulario">
             ✕
           </button>
         </div>
 
-        <form
-          @submit.prevent="guardarMovimiento"
-          class="formulario-trazabilidad"
-        >
-          <div class="campos-formulario">
-            <!-- Primera fila -->
-            <div class="fila-campos">
-              <CampoEntrada
-                v-model="formulario.formulario.codigo_material"
-                etiqueta="Código del Material"
-                placeholder="Ej: BOGR2062"
-                es-requerido
-                :mensaje-error="formulario.obtenerErrorCampo('codigo_material')"
-                @cambio="buscarMaterial"
-                @blur="formulario.marcarCampoComoTocado('codigo_material')"
-              />
-
-              <CampoEntrada
-                v-model="formulario.formulario.nombre_material"
-                etiqueta="Nombre del Material"
-                placeholder="Se completará automáticamente"
-                solo-lectura
-              />
-            </div>
-
-            <!-- Segunda fila -->
-            <div class="fila-campos">
-              <CampoEntrada
-                v-model="formulario.formulario.lote"
-                etiqueta="Lote"
-                placeholder="Ej: L2024-001"
-                es-requerido
-                :mensaje-error="formulario.obtenerErrorCampo('lote')"
-                @blur="formulario.marcarCampoComoTocado('lote')"
-              />
-
-              <CampoEntrada
-                v-model="formulario.formulario.tarja"
-                etiqueta="Tarja"
-                placeholder="Ej: T2024-001"
-                es-requerido
-                :mensaje-error="formulario.obtenerErrorCampo('tarja')"
-                @blur="formulario.marcarCampoComoTocado('tarja')"
-              />
-            </div>
-
-            <!-- Tercera fila -->
-            <div class="fila-campos">
-              <CampoEntrada
-                v-model="formulario.formulario.tipo_movimiento"
-                etiqueta="Tipo de Movimiento"
-                tipo="select"
-                :opciones="tiposMovimientoDisponibles"
-                es-requerido
-                :mensaje-error="formulario.obtenerErrorCampo('tipo_movimiento')"
-                @blur="formulario.marcarCampoComoTocado('tipo_movimiento')"
-              />
-
-              <CampoEntrada
-                v-model="formulario.formulario.cantidad"
-                etiqueta="Cantidad"
-                tipo="number"
-                placeholder="0"
-                es-requerido
-                minimo="0.01"
-                paso="0.01"
-                :mensaje-error="formulario.obtenerErrorCampo('cantidad')"
-                @blur="formulario.marcarCampoComoTocado('cantidad')"
-              />
-            </div>
-
-            <!-- Cuarta fila -->
-            <div class="fila-campos">
-              <CampoEntrada
-                v-model="formulario.formulario.ubicacion_origen"
-                etiqueta="Ubicación de Origen"
-                tipo="select"
-                :opciones="ubicacionesDisponibles"
-                texto-ayuda="Ubicación desde donde sale el material"
-              />
-
-              <CampoEntrada
-                v-model="formulario.formulario.ubicacion_destino"
-                etiqueta="Ubicación de Destino"
-                tipo="select"
-                :opciones="ubicacionesDisponibles"
-                texto-ayuda="Ubicación a donde llega el material"
-              />
-            </div>
-
-            <!-- Quinta fila -->
-            <div class="fila-campos">
-              <CampoEntrada
-                v-model="formulario.formulario.turno"
-                etiqueta="Turno"
-                tipo="select"
-                :opciones="turnosDisponibles"
-                es-requerido
-                :mensaje-error="formulario.obtenerErrorCampo('turno')"
-                @blur="formulario.marcarCampoComoTocado('turno')"
-              />
-
-              <CampoEntrada
-                v-model="formulario.formulario.fecha_movimiento"
-                etiqueta="Fecha del Movimiento"
-                tipo="datetime-local"
-                es-requerido
-                :maximo="fechaHoraActual"
-                :mensaje-error="
-                  formulario.obtenerErrorCampo('fecha_movimiento')
-                "
-                @blur="formulario.marcarCampoComoTocado('fecha_movimiento')"
-              />
-            </div>
-
-            <!-- Sexta fila -->
-            <div class="fila-campos fila-completa">
-              <CampoEntrada
-                v-model="formulario.formulario.observaciones"
-                etiqueta="Observaciones"
-                tipo="textarea"
-                placeholder="Información adicional sobre el movimiento..."
-                :filas="3"
-                texto-ayuda="Opcional: detalles adicionales del movimiento"
-              />
-            </div>
-          </div>
-
-          <!-- Errores generales del formulario -->
-          <MensajeEstado
-            v-if="formulario.tieneErrores"
-            tipo="error"
-            :mensaje="formulario.obtenerErroresFormateados()"
-            :visible="formulario.tieneErrores"
-            :puede-ser-cerrado="false"
-          />
-
-          <!-- Botones del formulario -->
-          <div class="botones-formulario">
-            <button
-              type="button"
-              class="boton boton-secundario"
-              @click="cerrarFormulario"
-              :disabled="formulario.cargandoEnvio"
-            >
-              Cancelar
-            </button>
-            <button
-              type="submit"
-              class="boton boton-principal"
-              :disabled="
-                !formulario.formularioValido || formulario.cargandoEnvio
-              "
-            >
-              <span
-                v-if="formulario.cargandoEnvio"
-                class="icono-boton spinner"
-              ></span>
-              <span v-else class="icono-boton">💾</span>
-              {{
-                formulario.cargandoEnvio ? "Guardando..." : "Guardar Movimiento"
-              }}
-            </button>
-          </div>
-        </form>
+        <FormularioTrazabilidad
+          @enviar="manejarEnvioTrazabilidad"
+          @cancelar="cerrarFormulario"
+        />
       </div>
     </div>
 
@@ -349,7 +359,6 @@
 
 <script setup>
 import { ref, computed, onMounted, watch } from "vue";
-import { usarFormulario } from "@/composables/usarFormulario";
 import { usarPaginacion } from "@/composables/usarPaginacion";
 import { usarExportacionExcel } from "@/composables/usarExportacionExcel";
 import { servicioTrazabilidad } from "@/servicios/servicioTrazabilidad";
@@ -357,16 +366,15 @@ import { servicioMantenedores } from "@/servicios/servicioMantenedores";
 import CampoEntrada from "@/componentes/CampoEntrada.vue";
 import MensajeEstado from "@/componentes/MensajeEstado.vue";
 import TablaTrazabilidad from "@/componentes/tablas/TablaTrazabilidad.vue";
+import FormularioTrazabilidad from "@/componentes/formularios/FormularioTrazabilidad.vue";
 import {
   PLANTAS,
   TIPOS_MOVIMIENTO,
-  TURNOS,
   MENSAJES,
   obtenerOpcionesSelect,
 } from "@/utilidades/constantes";
 import {
   fechaActualParaInput,
-  fechaHoraActualParaInput,
   filtrarPorTexto,
   filtrarPorRangoFechas,
 } from "@/utilidades/auxiliares";
@@ -386,11 +394,24 @@ const mensajeError = ref("");
 
 // Filtros
 const filtros = ref({
-  busqueda: "",
-  planta: "Rancagua",
-  tipoMovimiento: "",
-  fechaDesde: "",
-  fechaHasta: "",
+  busqueda: "", // Busca en múltiples campos
+  planta: "Rancagua", // Campo real: planta
+  tipoMovimiento: "", // Campo real: tipo_movimiento
+  fechaDesde: "", // Campo real: fecha (desde)
+  fechaHasta: "", // Campo real: fecha (hasta)
+  proveedor: "", // Campo real: proveedor
+  lote: "", // Campo real: lote
+  clasificacion: "", // Campo real: clasificacion
+  bodegaOrigen: "", // Campo real: bodega_origen
+  bodegaDestino: "", // Campo real: bodega_destino
+  turno: "", // Campo real: turno
+  guiaSII: "", // Campo real: guia_sii
+  numeroEmbarque: "", // Campo real: numero_embarque
+  patenteCamion: "", // Campo real: patente_camion
+  ubicacionOrigen: "", // Campo real: ubicacion_origen
+  ubicacionDestino: "", // Campo real: ubicacion_destino
+  temporada: "", // Campo real: temporada
+  observacion: "", // Campo real: observacion
 });
 
 // Paginación
@@ -407,25 +428,42 @@ const {
   obtenerConfiguracionColumnas,
 } = usarExportacionExcel();
 
-// Formulario de movimiento
-const formulario = usarFormulario({
-  datosIniciales: {
-    codigo_material: "",
-    nombre_material: "",
-    lote: "",
-    tarja: "",
-    tipo_movimiento: "",
-    cantidad: 0,
-    ubicacion_origen: "",
-    ubicacion_destino: "",
-    turno: "Turno 1",
-    fecha_movimiento: fechaHoraActualParaInput(),
-    observaciones: "",
-    planta: "Rancagua",
-  },
-  tipoValidacion: "trazabilidad",
-  validarEnTiempoReal: true,
-});
+// Función para manejar el envío del formulario de trazabilidad
+async function manejarEnvioTrazabilidad(datosFormulario) {
+  try {
+    cargandoDatos.value = true;
+
+    // Preparar datos para la API
+    const datosEnvio = {
+      codigo_material: datosFormulario.codigoMaterial,
+      nombre_material: datosFormulario.nombreMaterial,
+      lote: datosFormulario.lote,
+      tarja: datosFormulario.tarja,
+      tipo_movimiento: datosFormulario.tipoMovimiento,
+      cantidad: parseFloat(datosFormulario.cantidad),
+      ubicacion_origen: datosFormulario.ubicacionOrigen,
+      ubicacion_destino: datosFormulario.ubicacionDestino,
+      turno: datosFormulario.turno,
+      fecha_movimiento: datosFormulario.fecha,
+      observaciones: datosFormulario.observaciones,
+      planta: datosFormulario.planta,
+    };
+
+    // Llamar al servicio de trazabilidad
+    await servicioTrazabilidad.crearMovimiento(datosEnvio);
+
+    mensajeExito.value = "Movimiento registrado exitosamente";
+    mostrarFormulario.value = false;
+
+    // Recargar datos
+    await cargarTrazabilidad();
+  } catch (error) {
+    console.error("Error al guardar movimiento:", error);
+    mensajeError.value = error.message || "Error al guardar el movimiento";
+  } finally {
+    cargandoDatos.value = false;
+  }
+}
 
 // ============== COMPUTED PROPERTIES ==============
 
@@ -435,19 +473,83 @@ const tiposMovimientoDisponibles = computed(() =>
   obtenerOpcionesSelect(TIPOS_MOVIMIENTO)
 );
 
-const turnosDisponibles = computed(() => obtenerOpcionesSelect(TURNOS));
+const turnosRealesDisponibles = computed(() => {
+  const turnosUnicos = [
+    ...new Set(trazabilidad.value.map((item) => item.turno).filter(Boolean)),
+  ];
 
-const ubicacionesDisponibles = computed(() => {
-  return ubicaciones.value
-    .filter((u) => u.planta === formulario.formulario.planta)
-    .map((u) => ({
-      value: u.title,
-      label: `${u.title} (${u.bodega_deposito})`,
-    }));
+  return turnosUnicos.map((turno) => ({
+    value: turno,
+    label: turno,
+  }));
+});
+
+const clasificacionesDisponibles = computed(() => {
+  const clasificacionesUnicas = [
+    ...new Set(
+      trazabilidad.value.map((item) => item.clasificacion).filter(Boolean)
+    ),
+  ];
+
+  return clasificacionesUnicas.map((clasificacion) => ({
+    value: clasificacion,
+    label: clasificacion,
+  }));
+});
+
+const proveedoresDisponibles = computed(() => {
+  const proveedoresUnicos = [
+    ...new Set(
+      trazabilidad.value.map((item) => item.proveedor).filter(Boolean)
+    ),
+  ];
+
+  return proveedoresUnicos.map((proveedor) => ({
+    value: proveedor,
+    label: proveedor,
+  }));
+});
+
+const bodegasOrigenDisponibles = computed(() => {
+  const bodegasUnicas = [
+    ...new Set(
+      trazabilidad.value.map((item) => item.bodega_origen).filter(Boolean)
+    ),
+  ];
+
+  return bodegasUnicas.map((bodega) => ({
+    value: bodega,
+    label: bodega,
+  }));
+});
+
+const bodegasDestinoDisponibles = computed(() => {
+  const bodegasUnicas = [
+    ...new Set(
+      trazabilidad.value.map((item) => item.bodega_destino).filter(Boolean)
+    ),
+  ];
+
+  return bodegasUnicas.map((bodega) => ({
+    value: bodega,
+    label: bodega,
+  }));
+});
+
+const temporadasDisponibles = computed(() => {
+  const temporadasUnicas = [
+    ...new Set(
+      trazabilidad.value.map((item) => item.temporada).filter(Boolean)
+    ),
+  ];
+
+  return temporadasUnicas.map((temporada) => ({
+    value: temporada,
+    label: temporada,
+  }));
 });
 
 const fechaActual = computed(() => fechaActualParaInput());
-const fechaHoraActual = computed(() => fechaHoraActualParaInput());
 
 const tieneActivosFiltros = computed(() => {
   const filtrosActivos = [
@@ -455,168 +557,45 @@ const tieneActivosFiltros = computed(() => {
     filtros.value.tipoMovimiento,
     filtros.value.fechaDesde,
     filtros.value.fechaHasta,
+    filtros.value.proveedor,
+    filtros.value.lote,
+    filtros.value.clasificacion,
+    filtros.value.bodegaOrigen,
+    filtros.value.bodegaDestino,
+    filtros.value.turno,
+    filtros.value.guiaSII,
+    filtros.value.numeroEmbarque,
+    filtros.value.patenteCamion,
+    filtros.value.ubicacionOrigen,
+    filtros.value.ubicacionDestino,
+    filtros.value.temporada,
+    filtros.value.observacion,
   ].filter((filtro) => filtro && filtro.toString().trim() !== "");
 
   return filtrosActivos.length > 0;
 });
 
-// columnasTabla eliminada por ESLint cleanup
-/*const columnasTabla = computed(() => [
-  {
-    clave: "id",
-    titulo: "ID",
-    ordenable: true,
-    ancho: "60px",
-  },
-  {
-    clave: "id_movimiento",
-    titulo: "ID Movimiento",
-    ordenable: true,
-    ancho: "180px",
-  },
-  {
-    clave: "fecha",
-    titulo: "Fecha/Hora",
-    ordenable: true,
-    ancho: "140px",
-    tipo: "fechaHora",
-  },
-  {
-    clave: "tipo_movimiento",
-    titulo: "Tipo Movimiento",
-    ordenable: true,
-    ancho: "140px",
-  },
-  {
-    clave: "planta",
-    titulo: "Planta",
-    ordenable: true,
-    ancho: "100px",
-  },
-  {
-    clave: "guia_sii",
-    titulo: "Guía SII",
-    ordenable: true,
-    ancho: "120px",
-    formato: (valor) => valor || "N/A",
-  },
-  {
-    clave: "codigo_material",
-    titulo: "Código Material",
-    ordenable: true,
-    ancho: "120px",
-  },
-  {
-    clave: "nombre_material",
-    titulo: "Material",
-    ordenable: true,
-    ancho: "250px",
-  },
-  {
-    clave: "clasificacion",
-    titulo: "Clasificación",
-    ordenable: true,
-    ancho: "120px",
-  },
-  {
-    clave: "lote",
-    titulo: "Lote",
-    ordenable: true,
-    ancho: "140px",
-  },
-  {
-    clave: "proveedor",
-    titulo: "Proveedor",
-    ordenable: true,
-    ancho: "130px",
-    formato: (valor) => valor || "N/A",
-  },
-  {
-    clave: "cantidad",
-    titulo: "Cantidad",
-    ordenable: true,
-    alineacion: "derecha",
-    ancho: "110px",
-  },
-  {
-    clave: "total_pallet",
-    titulo: "Pallets",
-    ordenable: true,
-    alineacion: "derecha",
-    ancho: "80px",
-  },
-  {
-    clave: "bodega_origen",
-    titulo: "Bodega Origen",
-    ordenable: true,
-    ancho: "130px",
-    formato: (valor) => valor || "N/A",
-  },
-  {
-    clave: "bodega_destino",
-    titulo: "Bodega Destino",
-    ordenable: true,
-    ancho: "130px",
-    formato: (valor) => valor || "N/A",
-  },
-  {
-    clave: "ubicacion_origen",
-    titulo: "Ubicación Origen",
-    ordenable: true,
-    ancho: "140px",
-    formato: (valor) => valor || "N/A",
-  },
-  {
-    clave: "ubicacion_destino",
-    titulo: "Ubicación Destino",
-    ordenable: true,
-    ancho: "140px",
-    formato: (valor) => valor || "N/A",
-  },
-  {
-    clave: "turno",
-    titulo: "Turno",
-    ordenable: true,
-    ancho: "100px",
-    formato: (valor) => valor || "N/A",
-  },
-  {
-    clave: "total_stock",
-    titulo: "Stock Total",
-    ordenable: true,
-    alineacion: "derecha",
-    ancho: "100px",
-    formato: (valor) => (valor ? formatearNumero(valor, 2) : "N/A"),
-  },
-  {
-    clave: "numero_embarque",
-    titulo: "Nº Embarque",
-    ordenable: true,
-    ancho: "120px",
-    formato: (valor) => valor || "N/A",
-  },
-  {
-    clave: "patente_camion",
-    titulo: "Patente Camión",
-    ordenable: true,
-    ancho: "120px",
-    formato: (valor) => valor || "N/A",
-  },
-  {
-    clave: "observacion",
-    titulo: "Observación",
-    ordenable: true,
-    ancho: "200px",
-    formato: (valor) => valor || "N/A",
-  },
-  {
-    clave: "fecha_creacion",
-    titulo: "Fecha Creación",
-    ordenable: true,
-    ancho: "140px",
-    tipo: "fechaHora",
-  },
-]);*/
+const filtrosActivosTrazabilidad = computed(() => {
+  return [
+    filtros.value.busqueda,
+    filtros.value.tipoMovimiento,
+    filtros.value.fechaDesde,
+    filtros.value.fechaHasta,
+    filtros.value.proveedor,
+    filtros.value.lote,
+    filtros.value.clasificacion,
+    filtros.value.bodegaOrigen,
+    filtros.value.bodegaDestino,
+    filtros.value.turno,
+    filtros.value.guiaSII,
+    filtros.value.numeroEmbarque,
+    filtros.value.patenteCamion,
+    filtros.value.ubicacionOrigen,
+    filtros.value.ubicacionDestino,
+    filtros.value.temporada,
+    filtros.value.observacion,
+  ].filter((filtro) => filtro && filtro.toString().trim() !== "").length;
+});
 
 // ============== MÉTODOS ==============
 
@@ -632,7 +611,7 @@ async function cargarTrazabilidad() {
 
     trazabilidad.value = datos || [];
     aplicarFiltros();
-    mostrarMensajeExito("Historial actualizado correctamente");
+    mensajeExito.value = "Historial actualizado correctamente";
   } catch (error) {
     console.error("Error al cargar trazabilidad:", error);
     mensajeError.value = error.message || MENSAJES.ERROR_GENERICO;
@@ -648,28 +627,6 @@ async function cargarUbicaciones() {
   } catch (error) {
     console.error("Error al cargar ubicaciones:", error);
     mensajeError.value = "Error al cargar ubicaciones";
-  }
-}
-
-async function buscarMaterial() {
-  const codigo = formulario.formulario.codigo_material?.trim();
-  if (!codigo || codigo.length < 2) {
-    formulario.formulario.nombre_material = "";
-    return;
-  }
-
-  try {
-    const material = await servicioMantenedores.obtenerMaterialPorCodigo(
-      codigo
-    );
-    if (material) {
-      formulario.formulario.nombre_material = material.nombre_material || "";
-    } else {
-      formulario.formulario.nombre_material = "";
-    }
-  } catch (error) {
-    console.error("Error al buscar material:", error);
-    formulario.formulario.nombre_material = "";
   }
 }
 
@@ -703,6 +660,96 @@ function aplicarFiltros() {
     );
   }
 
+  // Aplicar filtro de proveedor (selector exacto)
+  if (filtros.value.proveedor) {
+    datos = datos.filter((item) => item.proveedor === filtros.value.proveedor);
+  }
+
+  // Aplicar filtro de lote
+  if (filtros.value.lote) {
+    const lote = filtros.value.lote.toLowerCase();
+    datos = datos.filter((item) => item.lote?.toLowerCase().includes(lote));
+  }
+
+  // Aplicar filtro de clasificación
+  if (filtros.value.clasificacion) {
+    datos = datos.filter(
+      (item) => item.clasificacion === filtros.value.clasificacion
+    );
+  }
+
+  // Aplicar filtro de bodega origen (selector exacto)
+  if (filtros.value.bodegaOrigen) {
+    datos = datos.filter(
+      (item) => item.bodega_origen === filtros.value.bodegaOrigen
+    );
+  }
+
+  // Aplicar filtro de bodega destino (selector exacto)
+  if (filtros.value.bodegaDestino) {
+    datos = datos.filter(
+      (item) => item.bodega_destino === filtros.value.bodegaDestino
+    );
+  }
+
+  // Aplicar filtro de turno
+  if (filtros.value.turno) {
+    datos = datos.filter((item) => item.turno === filtros.value.turno);
+  }
+
+  // Aplicar filtro de guía SII
+  if (filtros.value.guiaSII) {
+    const guiaSII = filtros.value.guiaSII.toLowerCase();
+    datos = datos.filter((item) =>
+      item.guia_sii?.toLowerCase().includes(guiaSII)
+    );
+  }
+
+  // Aplicar filtro de número de embarque
+  if (filtros.value.numeroEmbarque) {
+    const numeroEmbarque = filtros.value.numeroEmbarque.toLowerCase();
+    datos = datos.filter((item) =>
+      item.numero_embarque?.toLowerCase().includes(numeroEmbarque)
+    );
+  }
+
+  // Aplicar filtro de patente de camión
+  if (filtros.value.patenteCamion) {
+    const patenteCamion = filtros.value.patenteCamion.toLowerCase();
+    datos = datos.filter((item) =>
+      item.patente_camion?.toLowerCase().includes(patenteCamion)
+    );
+  }
+
+  // Aplicar filtro de ubicación origen
+  if (filtros.value.ubicacionOrigen) {
+    const ubicacionOrigen = filtros.value.ubicacionOrigen.toLowerCase();
+    datos = datos.filter((item) =>
+      item.ubicacion_origen?.toLowerCase().includes(ubicacionOrigen)
+    );
+  }
+
+  // Aplicar filtro de ubicación destino
+  if (filtros.value.ubicacionDestino) {
+    const ubicacionDestino = filtros.value.ubicacionDestino.toLowerCase();
+    datos = datos.filter((item) =>
+      item.ubicacion_destino?.toLowerCase().includes(ubicacionDestino)
+    );
+  }
+
+  // Aplicar filtro de temporada
+  if (filtros.value.temporada) {
+    datos = datos.filter((item) => item.temporada === filtros.value.temporada);
+  }
+
+  // Aplicar filtro de observación
+  if (filtros.value.observacion) {
+    const observacion = filtros.value.observacion.toLowerCase();
+    datos = datos.filter((item) =>
+      item.observacion?.toLowerCase().includes(observacion)
+    );
+  }
+
   // Aplicar filtro de fechas
   if (filtros.value.fechaDesde || filtros.value.fechaHasta) {
     datos = filtrarPorRangoFechas(
@@ -725,6 +772,19 @@ function limpiarFiltros() {
     tipoMovimiento: "",
     fechaDesde: "",
     fechaHasta: "",
+    proveedor: "",
+    lote: "",
+    clasificacion: "",
+    bodegaOrigen: "",
+    bodegaDestino: "",
+    turno: "",
+    guiaSII: "",
+    numeroEmbarque: "",
+    patenteCamion: "",
+    ubicacionOrigen: "",
+    ubicacionDestino: "",
+    temporada: "",
+    observacion: "",
   };
   aplicarFiltros();
 }
@@ -732,36 +792,14 @@ function limpiarFiltros() {
 async function exportarDatos() {
   try {
     // TODO: Implementar exportación
-    mostrarMensajeExito("Funcionalidad de exportación en desarrollo");
+    mensajeExito.value = "Funcionalidad de exportación en desarrollo";
   } catch {
     mensajeError.value = "Error al exportar datos";
   }
 }
 
-async function guardarMovimiento() {
-  const exito = await formulario.manejarEnvio(async (datos) => {
-    return await servicioTrazabilidad.crearMovimiento(datos);
-  });
-
-  if (exito) {
-    mostrarMensajeExito(MENSAJES.EXITO_CREAR);
-    cerrarFormulario();
-    await cargarTrazabilidad();
-  }
-}
-
 function cerrarFormulario() {
   mostrarFormulario.value = false;
-  formulario.reiniciarFormulario();
-  // Resetear valores por defecto
-  formulario.formulario.fecha_movimiento = fechaHoraActualParaInput();
-  formulario.formulario.planta = filtros.value.planta;
-  formulario.formulario.turno = "Turno 1";
-}
-
-function mostrarMensajeExito(mensaje) {
-  mensajeExito.value = mensaje;
-  mensajeError.value = "";
 }
 
 async function exportarAExcel() {
@@ -781,9 +819,7 @@ async function exportarAExcel() {
       { anchoColumnas: configuracionColumnas }
     );
 
-    mostrarMensajeExito(
-      `Reporte exportado exitosamente: ${resultado.nombreArchivo} (${resultado.registrosExportados} registros)`
-    );
+    mensajeExito.value = `Reporte exportado exitosamente: ${resultado.nombreArchivo} (${resultado.registrosExportados} registros)`;
   } catch (error) {
     console.error("Error al exportar a Excel:", error);
     mensajeError.value = `Error al generar el reporte Excel: ${error.message}`;
@@ -793,34 +829,20 @@ async function exportarAExcel() {
 // Métodos específicos para la tabla de trazabilidad
 function verDetalleMovimiento(movimiento) {
   // TODO: Implementar modal de detalle de movimiento
-  mostrarMensajeExito(
-    `Detalle del movimiento ${movimiento.id_movimiento} (funcionalidad en desarrollo)`
-  );
+  mensajeExito.value = `Detalle del movimiento ${movimiento.id_movimiento} (funcionalidad en desarrollo)`;
 }
 
 function editarMovimiento(movimiento) {
   // TODO: Implementar edición de movimiento
-  mostrarMensajeExito(
-    `Edición del movimiento ${movimiento.id_movimiento} (funcionalidad en desarrollo)`
-  );
+  mensajeExito.value = `Edición del movimiento ${movimiento.id_movimiento} (funcionalidad en desarrollo)`;
 }
 
 function imprimirEtiqueta(movimiento) {
   // TODO: Implementar impresión de etiquetas
-  mostrarMensajeExito(
-    `Impresión de etiqueta para ${movimiento.id_movimiento} (funcionalidad en desarrollo)`
-  );
+  mensajeExito.value = `Impresión de etiqueta para ${movimiento.id_movimiento} (funcionalidad en desarrollo)`;
 }
 
 // ============== WATCHERS ==============
-
-watch(
-  () => filtros.value.planta,
-  async (nuevaPlanta) => {
-    formulario.formulario.planta = nuevaPlanta;
-    await cargarTrazabilidad();
-  }
-);
 
 watch(
   () => [
@@ -842,6 +864,9 @@ onMounted(async () => {
 </script>
 
 <style scoped>
+/* Importar estilos optimizados de filtros */
+@import "../estilos/filtros-optimizados.css";
+
 .vista-trazabilidad {
   padding: 1.5rem;
   max-width: 100%;
@@ -951,33 +976,40 @@ onMounted(async () => {
   line-height: 1;
 }
 
-/* Filtros específicos de trazabilidad */
-.seccion-filtros {
-  background: white;
-  border-radius: 1rem;
-  padding: 1.5rem;
-  margin-bottom: 2rem;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-  border: 1px solid #f1f5f9;
-}
-
-.filtros-fila-principal {
-  display: grid;
-  grid-template-columns: 1fr auto auto;
+/* Estilos específicos para VistaTrazabilidad */
+.indicadores-filtros {
+  display: flex;
+  align-items: center;
   gap: 1rem;
-  align-items: end;
-  margin-bottom: 1rem;
 }
 
-.filtros-fila-secundaria {
-  display: grid;
-  grid-template-columns: auto auto 1fr auto;
+.grupo-acciones-filtros {
+  display: flex;
+  align-items: center;
   gap: 1rem;
-  align-items: end;
+  justify-content: flex-end;
 }
 
-.boton-limpiar {
-  justify-self: end;
+/* Optimización específica para el layout de trazabilidad */
+.vista-trazabilidad .filtros-fila-principal {
+  grid-template-columns: 2.5fr 1fr 1fr;
+}
+
+.vista-trazabilidad .filtros-fila-secundaria {
+  grid-template-columns: repeat(4, minmax(140px, 1fr));
+}
+
+.vista-trazabilidad .filtros-fila-avanzada {
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+}
+
+.vista-trazabilidad .filtros-fila-extra {
+  grid-template-columns: repeat(4, minmax(140px, 1fr));
+}
+
+.vista-trazabilidad .filtros-fila-acciones {
+  justify-content: space-between;
+  align-items: center;
 }
 
 /* Badges para tipos de movimiento */
