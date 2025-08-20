@@ -9,9 +9,6 @@ import VistaFrioDespacho from "../vistas/VistaFrioDespacho.vue";
 import VistaOperacionesFrioDespacho from "../vistas/VistaOperacionesFrioDespacho.vue";
 import VistaTarjas from "../vistas/VistaTarjas.vue";
 
-// Control para evitar bucles infinitos
-let verificandoNavegacion = false;
-
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
   routes: [
@@ -67,15 +64,6 @@ const router = createRouter({
 
 // Guardia de navegación global para proteger rutas
 router.beforeEach(async (hacia, desde, siguiente) => {
-  // Evitar navegaciones concurrentes para prevenir bucles
-  if (verificandoNavegacion) {
-    console.log("Navegación ya en curso, esperando...");
-    setTimeout(() => siguiente(false), 100);
-    return;
-  }
-
-  verificandoNavegacion = true;
-
   try {
     const almacenAutenticacion = usarAlmacenAutenticacion();
     const requiereAutenticacion = hacia.meta.requiresAuth;
@@ -87,8 +75,7 @@ router.beforeEach(async (hacia, desde, siguiente) => {
       // Verificar si hay token en localStorage
       if (!almacenAutenticacion.estaAutenticado) {
         console.log("Redirigiendo al login: no hay token");
-        siguiente({ name: "login" });
-        return;
+        return siguiente({ name: "login" });
       }
 
       // Verificar si el token es válido en el servidor
@@ -97,12 +84,11 @@ router.beforeEach(async (hacia, desde, siguiente) => {
       if (!sesionValida) {
         console.log("Token inválido, limpiando sesión y redirigiendo al login");
         almacenAutenticacion.limpiarSesion();
-        siguiente({ name: "login" });
-        return;
+        return siguiente({ name: "login" });
       }
     }
 
-    // Si intenta ir al login pero tiene token, verificar si es válido
+    // Si intenta ir al login pero tiene token válido, redirigir al inicio
     if (hacia.name === "login" && almacenAutenticacion.estaAutenticado) {
       console.log("Verificando token antes de determinar redirección...");
       const sesionValida = await almacenAutenticacion.verificarSesion();
@@ -110,12 +96,10 @@ router.beforeEach(async (hacia, desde, siguiente) => {
         console.log(
           "Usuario ya autenticado con token válido, redirigiendo al inicio"
         );
-        siguiente({ name: "inicio" });
-        return;
+        return siguiente({ name: "inicio" });
       } else {
         console.log("Token inválido, permitiendo acceso al login");
         almacenAutenticacion.limpiarSesion();
-        // Permitir continuar al login
       }
     }
 
@@ -124,11 +108,6 @@ router.beforeEach(async (hacia, desde, siguiente) => {
   } catch (error) {
     console.error("Error en guardia de navegación:", error);
     siguiente({ name: "login" });
-  } finally {
-    // Liberar el bloqueo después de un pequeño retraso para evitar condiciones de carrera
-    setTimeout(() => {
-      verificandoNavegacion = false;
-    }, 50);
   }
 });
 
